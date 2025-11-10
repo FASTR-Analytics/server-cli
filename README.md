@@ -28,8 +28,8 @@ Server-side management tool for FASTR server instances running on Docker.
 
 ```bash
 # On your local machine, build the binary
-git clone https://github.com/timroberton/wb-fastr-cli.git
-cd wb-fastr-cli
+git clone https://github.com/FASTR-Analytics/server-cli.git
+cd server-cli
 
 deno compile \
   --allow-env \
@@ -243,7 +243,7 @@ Use special selectors for bulk operations:
 ### Project Structure
 
 ```
-wb-fastr-cli/
+server-cli/
 ├── src/
 │   ├── commands/       # Command implementations
 │   │   ├── config/     # Configuration management
