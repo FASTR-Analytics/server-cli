@@ -1,0 +1,22 @@
+[
+  {
+    "id": "demo",
+    "label": "Demo Server",
+    "port": 9100,
+    "serverVersion": "1.6.7",
+    "french": false,
+    "ethiopian": false,
+    "openAccess": true
+  },
+  {
+    "id": "production",
+    "label": "Production Server",
+    "port": 9200,
+    "serverVersion": "1.6.7",
+    "adminVersion": "1.0.0",
+    "french": false,
+    "ethiopian": false,
+    "openAccess": false,
+    "tags": ["production"]
+  }
+]

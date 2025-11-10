@@ -1,0 +1,60 @@
+#!/bin/sh
+
+# Personal deployment script - customize for your environment
+# Update paths, env-file location, and server hostname for your setup
+
+set -e
+
+# Store start time
+START_TIME=$(date +%s)
+
+# Error trap for cleanup
+trap 'echo "ERROR: Build failed!"; exit 1' ERR
+
+echo "Compiling Deno application..."
+deno compile \
+  --env-file=/Users/timroberton/projects/_1_WEB_APPS/wb-fastr-cli/.env.production.local \
+  --allow-env \
+  --allow-run \
+  --allow-read \
+  --allow-write \
+  --target x86_64-unknown-linux-gnu \
+  -o /Users/timroberton/projects/_1_WEB_APPS/wb-fastr-cli/wb \
+  /Users/timroberton/projects/_1_WEB_APPS/wb-fastr-cli/main.ts
+
+echo "Committing changes to git..."
+git add .
+git commit -m "Build at $(date +%Y_%m_%d_%H_%M_%S)" --allow-empty
+git push
+
+echo "Uploading binary to server..."
+scp /Users/timroberton/projects/_1_WEB_APPS/wb-fastr-cli/wb \
+  wb-server:/root/bin/wb
+
+# Clear trap on success
+trap - ERR
+
+# Calculate duration
+END_TIME=$(date +%s)
+DURATION=$((END_TIME - START_TIME))
+MINUTES=$((DURATION / 60))
+SECONDS=$((DURATION % 60))
+
+# Success banner
+echo ""
+echo -e "\033[92m"
+echo "╔══════════════════════════════════════════════════════════════════════╗"
+echo "║                                                                      ║"
+echo "║                         BUILD SUCCESSFUL!                            ║"
+echo "║                                                                      ║"
+echo "╠══════════════════════════════════════════════════════════════════════╣"
+echo "║  Operations Completed:                                               ║"
+echo "║    - Deno application compiled successfully                          ║"
+echo "║    - Changes committed to Git                                        ║"
+echo "║    - Changes pushed to remote repository                             ║"
+echo "║    - Binary uploaded to server                                       ║"
+echo "║                                                                      ║"
+printf "║  Duration: %-57s ║\n" "$MINUTES minutes $SECONDS seconds"
+echo "╚══════════════════════════════════════════════════════════════════════╝"
+echo -e "\033[0m"
+echo ""

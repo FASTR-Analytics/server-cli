@@ -1,0 +1,12 @@
+# Environment and secrets
+.env
+.env*.local
+
+# Compiled binary
+wb
+
+# Local test data
+*.sql
+
+# System files
+.DS_Store

@@ -1,0 +1,16 @@
+{
+  "name": "@timroberton/wb-fastr-cli",
+  "version": "1.0.0",
+  "exports": "./main.ts",
+  "imports": {
+    "@std/cli": "jsr:@std/cli@^1.0.7",
+    "@std/path": "jsr:@std/path@^1.0.8"
+  },
+  "compilerOptions": {
+    "strict": true
+  },
+  "tasks": {
+    "check": "deno check main.ts",
+    "build": "./build"
+  }
+}
