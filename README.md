@@ -1,4 +1,4 @@
-# wb-fastr-cli
+# server-cli
 
 Server-side management tool for FASTR server instances running on Docker.
 
@@ -15,6 +15,7 @@ Server-side management tool for FASTR server instances running on Docker.
 ## Prerequisites
 
 **On the server:**
+
 - [Deno](https://deno.land/) runtime
 - Docker
 - nginx
@@ -130,6 +131,7 @@ Create a `servers.json` file on the server at `/root/config/servers.json`:
 See `servers.json.example` in the repository for more examples.
 
 **Server Fields:**
+
 - `id`: Unique identifier (lowercase alphanumeric with hyphens)
 - `label`: Display name
 - `port`: HTTP port (1000-65535)
