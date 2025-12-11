@@ -9,7 +9,10 @@ import { runAdminContainer } from "./run-admin-container.ts";
 
 import { Config } from "../../core/config.ts";
 
-async function validateServerSetup(serverInfo: Server, config: Config): Promise<void> {
+async function validateServerSetup(
+  serverInfo: Server,
+  config: Config
+): Promise<void> {
   const subdomain = `${serverInfo.id}.${config.domain}`;
   const port = serverInfo.port;
 
@@ -24,21 +27,42 @@ async function validateServerSetup(serverInfo: Server, config: Config): Promise<
       if (nginxPort === port) {
         console.log(colors.green(`✓ Nginx configuration matches port ${port}`));
       } else {
-        console.log(colors.red(`✗ Nginx port mismatch: config has ${nginxPort}, server uses ${port}`));
-        console.log(colors.dim(`   Run: wb nginx ${serverInfo.id} to fix configuration`));
-        throw new Error(`Nginx configuration port mismatch for ${serverInfo.id}`);
+        console.log(
+          colors.red(
+            `✗ Nginx port mismatch: config has ${nginxPort}, server uses ${port}`
+          )
+        );
+        console.log(
+          colors.dim(`   Run: wb nginx ${serverInfo.id} to fix configuration`)
+        );
+        throw new Error(
+          `Nginx configuration port mismatch for ${serverInfo.id}`
+        );
       }
     } else {
-      console.log(colors.yellow(`⚠️  Warning: Cannot parse port from nginx config`));
+      console.log(
+        colors.yellow(`⚠️  Warning: Cannot parse port from nginx config`)
+      );
     }
   } catch (error) {
     if (error instanceof Deno.errors.NotFound) {
-      console.log(colors.yellow(`⚠️  Warning: No nginx configuration found for ${subdomain}`));
-      console.log(colors.dim(`   Run: wb nginx ${serverInfo.id} to create one`));
-    } else if (error instanceof Error && error.message?.includes("port mismatch")) {
+      console.log(
+        colors.yellow(
+          `⚠️  Warning: No nginx configuration found for ${subdomain}`
+        )
+      );
+      console.log(
+        colors.dim(`   Run: wb nginx ${serverInfo.id} to create one`)
+      );
+    } else if (
+      error instanceof Error &&
+      error.message?.includes("port mismatch")
+    ) {
       throw error; // Re-throw port mismatch errors to stop container startup
     } else {
-      console.log(colors.yellow(`⚠️  Warning: Cannot check nginx configuration`));
+      console.log(
+        colors.yellow(`⚠️  Warning: Cannot check nginx configuration`)
+      );
     }
   }
 
@@ -54,18 +78,31 @@ async function validateServerSetup(serverInfo: Server, config: Config): Promise<
     if (certResult.success) {
       const output = new TextDecoder().decode(certResult.stdout);
       if (!output.includes(`Certificate Name: ${subdomain}`)) {
-        console.log(colors.yellow(`⚠️  Warning: No SSL certificate found for ${subdomain}`));
-        console.log(colors.dim(`   Run: wb ssl-init ${serverInfo.id} to create one`));
+        console.log(
+          colors.yellow(
+            `⚠️  Warning: No SSL certificate found for ${subdomain}`
+          )
+        );
+        console.log(
+          colors.dim(`   Run: wb ssl-init ${serverInfo.id} to create one`)
+        );
       } else {
         console.log(colors.green(`✓ SSL certificate found for ${subdomain}`));
       }
     } else {
-      console.log(colors.yellow(`⚠️  Warning: Cannot check SSL certificates (certbot not available)`));
+      console.log(
+        colors.yellow(
+          `⚠️  Warning: Cannot check SSL certificates (certbot not available)`
+        )
+      );
     }
   } catch {
-    console.log(colors.yellow(`⚠️  Warning: Cannot check SSL certificates (certbot not available)`));
+    console.log(
+      colors.yellow(
+        `⚠️  Warning: Cannot check SSL certificates (certbot not available)`
+      )
+    );
   }
-
 
   // Check nginx is enabled
   const nginxEnabledPath = join(config.sitesEnabledPath, subdomain);
@@ -73,8 +110,12 @@ async function validateServerSetup(serverInfo: Server, config: Config): Promise<
     await Deno.lstat(nginxEnabledPath);
     console.log(colors.green(`✓ Nginx site enabled for ${subdomain}`));
   } catch {
-    console.log(colors.yellow(`⚠️  Warning: Nginx site not enabled for ${subdomain}`));
-    console.log(colors.dim(`   Run: wb nginx-init ${serverInfo.id} to enable it`));
+    console.log(
+      colors.yellow(`⚠️  Warning: Nginx site not enabled for ${subdomain}`)
+    );
+    console.log(
+      colors.dim(`   Run: wb nginx-init ${serverInfo.id} to enable it`)
+    );
   }
 
   console.log(colors.dim(""));
@@ -86,7 +127,9 @@ export async function runContainer(
 ): Promise<void> {
   const config = getConfig();
   if (!serverInfo.serverVersion) {
-    throw new Error(`Server '${serverInfo.id}' must have a serverVersion specified`);
+    throw new Error(
+      `Server '${serverInfo.id}' must have a serverVersion specified`
+    );
   }
 
   // Validate server setup first
@@ -137,7 +180,9 @@ export async function runContainer(
     const output = await cmdCreateNetwork.output();
     const stderr = new TextDecoder().decode(output.stderr);
     if (!output.success && !stderr.includes("already exists")) {
-      console.log(colors.yellow(`⚠️  Warning: Could not create network: ${stderr.trim()}`));
+      console.log(
+        colors.yellow(`⚠️  Warning: Could not create network: ${stderr.trim()}`)
+      );
     }
   } catch {
     //
@@ -223,16 +268,22 @@ export async function runContainer(
     `${join(instanceDirPath, "assets")}:/app/assets`,
     "-e",
     `SANDBOX_DIR_PATH_EXTERNAL=${join(instanceDirPath, "sandbox")}`,
-    ...(serverInfo.adminVersion ? ["-e", `ADMIN_SERVER_HOST=http://${serverInfo.id}-admin:8001`] : []),
+    ...(serverInfo.adminVersion
+      ? ["-e", `ADMIN_SERVER_HOST=http://${serverInfo.id}-admin:8001`]
+      : []),
     "-e",
     `SERVER_VERSION=${serverInfo.serverVersion || "latest"}`,
-    ...(serverInfo.adminVersion ? ["-e", `ADMIN_VERSION=${serverInfo.adminVersion}`] : []),
+    ...(serverInfo.adminVersion
+      ? ["-e", `ADMIN_VERSION=${serverInfo.adminVersion}`]
+      : []),
     "-e",
     `DATABASE_FOLDER=${serverInfo.instanceDir || serverInfo.id}`,
     "-e",
     `CLERK_PUBLISHABLE_KEY=${config.clerkPublishableKey}`,
     "-e",
     `CLERK_SECRET_KEY=${config.clerkSecretKey}`,
+    "-e",
+    `INSTANCE_ID='${serverInfo.id}'`,
     "-e",
     `INSTANCE_NAME='${serverInfo.label}'`,
     ...(serverInfo.french ? ["-e", `INSTANCE_LANGUAGE=fr`] : []),
@@ -254,9 +305,9 @@ export async function runContainer(
   ];
 
   function getServerImageName(version: string): string {
-    const [major, minor] = version.split('.').map(Number);
+    const [major, minor] = version.split(".").map(Number);
     const isNewVersion = major > 1 || (major === 1 && minor >= 6);
-    const imageFamily = isNewVersion ? 'wb-fastr-server' : 'wb-hmis-server';
+    const imageFamily = isNewVersion ? "wb-fastr-server" : "wb-hmis-server";
     return `timroberton/comb:${imageFamily}-v${version}`;
   }
   const cmdRunContainer = new Deno.Command("docker", {
