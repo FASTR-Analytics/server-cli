@@ -306,8 +306,8 @@ export async function runContainer(
 
   function getServerImageName(version: string): string {
     const [major, minor] = version.split(".").map(Number);
-    const isNewVersion = major > 1 || (major === 1 && minor >= 6);
-    const imageFamily = isNewVersion ? "wb-fastr-server" : "wb-hmis-server";
+    const isOldVersion = major === 1 && minor < 6;
+    const imageFamily = isOldVersion ? "wb-hmis-server" : "wb-fastr-server";
     return `timroberton/comb:${imageFamily}-v${version}`;
   }
   const cmdRunContainer = new Deno.Command("docker", {
