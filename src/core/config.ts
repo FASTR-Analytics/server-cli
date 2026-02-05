@@ -9,6 +9,7 @@ export interface Config {
   postgresPassword: string;
   anthropicApiUrl: string;
   anthropicApiKey: string;
+  statusApiKey: string;
   pgPassword: string;
 }
 
@@ -29,6 +30,7 @@ export function getConfig(): Config {
   const postgresPassword = Deno.env.get("POSTGRES_PASSWORD");
   const anthropicApiUrl = Deno.env.get("ANTHROPIC_API_URL");
   const anthropicApiKey = Deno.env.get("ANTHROPIC_API_KEY");
+  const statusApiKey = Deno.env.get("STATUS_API_KEY");
   const pgPassword = Deno.env.get("PG_PASSWORD");
 
   if (
@@ -42,10 +44,11 @@ export function getConfig(): Config {
     !postgresPassword ||
     !anthropicApiUrl ||
     !anthropicApiKey ||
+    !statusApiKey ||
     !pgPassword
   ) {
     throw new Error(
-      "Missing required environment variables: CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, DOMAIN, SERVERS_FILE_PATH, MOUNT_PATH, SITES_AVAILABLE_PATH, SITES_ENABLED_PATH, POSTGRES_PASSWORD, ANTHROPIC_API_URL, ANTHROPIC_API_KEY, PG_PASSWORD"
+      "Missing required environment variables: CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY, DOMAIN, SERVERS_FILE_PATH, MOUNT_PATH, SITES_AVAILABLE_PATH, SITES_ENABLED_PATH, POSTGRES_PASSWORD, ANTHROPIC_API_URL, ANTHROPIC_API_KEY, STATUS_API_KEY, PG_PASSWORD",
     );
   }
 
@@ -60,6 +63,7 @@ export function getConfig(): Config {
     postgresPassword,
     anthropicApiUrl,
     anthropicApiKey,
+    statusApiKey,
     pgPassword,
   };
 

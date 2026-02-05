@@ -11,7 +11,7 @@ import { Config } from "../../core/config.ts";
 
 async function validateServerSetup(
   serverInfo: Server,
-  config: Config
+  config: Config,
 ): Promise<void> {
   const subdomain = `${serverInfo.id}.${config.domain}`;
   const port = serverInfo.port;
@@ -29,30 +29,30 @@ async function validateServerSetup(
       } else {
         console.log(
           colors.red(
-            `✗ Nginx port mismatch: config has ${nginxPort}, server uses ${port}`
-          )
+            `✗ Nginx port mismatch: config has ${nginxPort}, server uses ${port}`,
+          ),
         );
         console.log(
-          colors.dim(`   Run: wb nginx ${serverInfo.id} to fix configuration`)
+          colors.dim(`   Run: wb nginx ${serverInfo.id} to fix configuration`),
         );
         throw new Error(
-          `Nginx configuration port mismatch for ${serverInfo.id}`
+          `Nginx configuration port mismatch for ${serverInfo.id}`,
         );
       }
     } else {
       console.log(
-        colors.yellow(`⚠️  Warning: Cannot parse port from nginx config`)
+        colors.yellow(`⚠️  Warning: Cannot parse port from nginx config`),
       );
     }
   } catch (error) {
     if (error instanceof Deno.errors.NotFound) {
       console.log(
         colors.yellow(
-          `⚠️  Warning: No nginx configuration found for ${subdomain}`
-        )
+          `⚠️  Warning: No nginx configuration found for ${subdomain}`,
+        ),
       );
       console.log(
-        colors.dim(`   Run: wb nginx ${serverInfo.id} to create one`)
+        colors.dim(`   Run: wb nginx ${serverInfo.id} to create one`),
       );
     } else if (
       error instanceof Error &&
@@ -61,7 +61,7 @@ async function validateServerSetup(
       throw error; // Re-throw port mismatch errors to stop container startup
     } else {
       console.log(
-        colors.yellow(`⚠️  Warning: Cannot check nginx configuration`)
+        colors.yellow(`⚠️  Warning: Cannot check nginx configuration`),
       );
     }
   }
@@ -80,11 +80,11 @@ async function validateServerSetup(
       if (!output.includes(`Certificate Name: ${subdomain}`)) {
         console.log(
           colors.yellow(
-            `⚠️  Warning: No SSL certificate found for ${subdomain}`
-          )
+            `⚠️  Warning: No SSL certificate found for ${subdomain}`,
+          ),
         );
         console.log(
-          colors.dim(`   Run: wb ssl-init ${serverInfo.id} to create one`)
+          colors.dim(`   Run: wb ssl-init ${serverInfo.id} to create one`),
         );
       } else {
         console.log(colors.green(`✓ SSL certificate found for ${subdomain}`));
@@ -92,15 +92,15 @@ async function validateServerSetup(
     } else {
       console.log(
         colors.yellow(
-          `⚠️  Warning: Cannot check SSL certificates (certbot not available)`
-        )
+          `⚠️  Warning: Cannot check SSL certificates (certbot not available)`,
+        ),
       );
     }
   } catch {
     console.log(
       colors.yellow(
-        `⚠️  Warning: Cannot check SSL certificates (certbot not available)`
-      )
+        `⚠️  Warning: Cannot check SSL certificates (certbot not available)`,
+      ),
     );
   }
 
@@ -111,10 +111,10 @@ async function validateServerSetup(
     console.log(colors.green(`✓ Nginx site enabled for ${subdomain}`));
   } catch {
     console.log(
-      colors.yellow(`⚠️  Warning: Nginx site not enabled for ${subdomain}`)
+      colors.yellow(`⚠️  Warning: Nginx site not enabled for ${subdomain}`),
     );
     console.log(
-      colors.dim(`   Run: wb nginx-init ${serverInfo.id} to enable it`)
+      colors.dim(`   Run: wb nginx-init ${serverInfo.id} to enable it`),
     );
   }
 
@@ -123,12 +123,12 @@ async function validateServerSetup(
 
 export async function runContainer(
   serverInfo: Server,
-  interactive: boolean = false
+  interactive: boolean = false,
 ): Promise<void> {
   const config = getConfig();
   if (!serverInfo.serverVersion) {
     throw new Error(
-      `Server '${serverInfo.id}' must have a serverVersion specified`
+      `Server '${serverInfo.id}' must have a serverVersion specified`,
     );
   }
 
@@ -141,7 +141,7 @@ export async function runContainer(
   //////////////////////
   const instanceDirPath = join(
     config.mountPath,
-    serverInfo.instanceDir || serverInfo.id
+    serverInfo.instanceDir || serverInfo.id,
   );
   try {
     await Deno.lstat(instanceDirPath);
@@ -181,7 +181,9 @@ export async function runContainer(
     const stderr = new TextDecoder().decode(output.stderr);
     if (!output.success && !stderr.includes("already exists")) {
       console.log(
-        colors.yellow(`⚠️  Warning: Could not create network: ${stderr.trim()}`)
+        colors.yellow(
+          `⚠️  Warning: Could not create network: ${stderr.trim()}`,
+        ),
       );
     }
   } catch {
@@ -299,6 +301,8 @@ export async function runContainer(
     `ANTHROPIC_API_URL=${config.anthropicApiUrl}`,
     "-e",
     `ANTHROPIC_API_KEY=${config.anthropicApiKey}`,
+    "-e",
+    `STATUS_API_KEY=${config.statusApiKey}`,
     "-e",
     `PG_PASSWORD=${config.pgPassword}`,
     getServerImageName(serverInfo.serverVersion),
