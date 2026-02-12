@@ -304,6 +304,8 @@ export async function runContainer(
     "-e",
     `STATUS_API_KEY=${config.statusApiKey}`,
     "-e",
+    `SEND_GRID_API=${config.sendGridApi}`,
+    "-e",
     `PG_PASSWORD=${config.pgPassword}`,
     getServerImageName(serverInfo.serverVersion),
   ];
