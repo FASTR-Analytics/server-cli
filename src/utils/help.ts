@@ -44,6 +44,8 @@ ${colors.bold("DOCKER COMMANDS")} ${colors.dim("(manage running containers)")}
   ${colors.cyan("wb restart <id...>")}           Restart one or more containers
   ${colors.cyan("wb pull")}                      Pull docker images
   ${colors.cyan("wb prune")}                     Prune unused docker networks
+  ${colors.cyan("wb run-pgadmin")}               Start pgAdmin (reads all servers, binds to localhost:5050)
+  ${colors.cyan("wb stop-pgadmin")}              Stop pgAdmin
 
   ${colors.dim("Special IDs:")}
   ${colors.dim("  all           - All configured servers")}

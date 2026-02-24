@@ -11,6 +11,8 @@ import { handleStop } from "../commands/docker/stop.ts";
 import { handleRun } from "../commands/docker/run.ts";
 import { handleRestart } from "../commands/docker/restart.ts";
 import { handlePrune } from "../commands/docker/prune.ts";
+import { handleRunPgAdmin } from "../commands/docker/run-pgadmin.ts";
+import { handleStopPgAdmin } from "../commands/docker/stop-pgadmin.ts";
 import { showHelp } from "../utils/help.ts";
 import { colors } from "../utils/colors.ts";
 
@@ -190,6 +192,18 @@ export async function runCLI(): Promise<void> {
     const targets = rest;
     if (subcommand) targets.unshift(subcommand);
     await handleStop(targets);
+    Deno.exit(0);
+  }
+
+  // Handle run-pgadmin command
+  if (command === "run-pgadmin") {
+    await handleRunPgAdmin();
+    Deno.exit(0);
+  }
+
+  // Handle stop-pgadmin command
+  if (command === "stop-pgadmin") {
+    await handleStopPgAdmin();
     Deno.exit(0);
   }
 
