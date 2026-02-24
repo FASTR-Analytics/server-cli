@@ -147,7 +147,7 @@ export async function handleRunPgAdmin(): Promise<void> {
   );
   console.log(
     colors.dim(
-      "Access via SSH tunnel: ssh -L 5050:localhost:5050 user@your-droplet",
+      "Access via SSH tunnel: ssh -L 5050:localhost:5050 root@your-droplet",
     ),
   );
 }
