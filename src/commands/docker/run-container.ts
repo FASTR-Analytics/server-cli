@@ -148,12 +148,13 @@ export async function runContainer(
   } catch {
     throw new Error("Directories not ready for this server");
   }
-  for await (const subDir of SUBDIRECTORIES) {
+  for (const subDir of SUBDIRECTORIES) {
     const subDirPath = join(instanceDirPath, subDir);
     try {
       await Deno.lstat(subDirPath);
     } catch {
-      throw new Error("Directories not ready for this server");
+      console.log(colors.cyan(`Creating missing directory: ${subDir}/`));
+      await Deno.mkdir(subDirPath, { recursive: true });
     }
   }
 
@@ -232,6 +233,33 @@ export async function runContainer(
     await runAdminContainer(serverInfo);
   }
 
+  ////////////////////////
+  //                    //
+  //    Run Valkey      //
+  //                    //
+  ////////////////////////
+  const argsRunValkey = [
+    "run",
+    "--rm",
+    "-dt",
+    "--name",
+    `${serverInfo.id}-valkey`,
+    "--network",
+    serverInfo.id,
+    "-v",
+    `${join(instanceDirPath, "valkey")}:/data`,
+    "valkey/valkey:8.0",
+    "valkey-server",
+    "--appendonly",
+    "yes",
+  ];
+  const cmdRunValkey = new Deno.Command("docker", { args: argsRunValkey });
+  const chdRunValkey = cmdRunValkey.spawn();
+  const valkeyOutput = await chdRunValkey.output();
+  if (!valkeyOutput.success) {
+    console.log(colors.yellow(`⚠️  Warning: Valkey container failed to start — app will fall back to DB queries`));
+  }
+
   /////////////////////////////////////
   //                                 //
   //    Remove existing container    //
@@ -307,6 +335,8 @@ export async function runContainer(
     `SEND_GRID_API=${config.sendGridApi}`,
     "-e",
     `PG_PASSWORD=${config.pgPassword}`,
+    "-e",
+    `VALKEY_URL=redis://${serverInfo.id}-valkey:6379`,
     getServerImageName(serverInfo.serverVersion),
   ];
 

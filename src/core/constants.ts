@@ -1,2 +1,2 @@
-export const IMAGES_TO_PULL = ["timroberton/comb:wb-hmis-r-linux", "postgres:17.4", "dpage/pgadmin4"];
-export const SUBDIRECTORIES = ["databases", "sandbox", "exports", "assets"];
+export const IMAGES_TO_PULL = ["timroberton/comb:wb-hmis-r-linux", "postgres:17.4", "dpage/pgadmin4", "valkey/valkey:8.0"];
+export const SUBDIRECTORIES = ["databases", "sandbox", "exports", "assets", "valkey"];

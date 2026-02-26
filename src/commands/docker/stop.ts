@@ -29,6 +29,7 @@ export async function handleStop(targets: string[]): Promise<void> {
       if (serverInfo.adminVersion) {
         await stopAdminContainer(serverInfo.id);
       }
+      await stopContainer(`${serverInfo.id}-valkey`);
       await stopContainer(`${serverInfo.id}-postgres`, 30);
 
       try {

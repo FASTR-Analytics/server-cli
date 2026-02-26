@@ -31,6 +31,7 @@ export async function handleRestart(targets: string[], interactive: boolean = fa
       if (serverInfo.adminVersion) {
         await stopAdminContainer(serverInfo.id);
       }
+      await stopContainer(`${serverInfo.id}-valkey`);
       await stopContainer(`${serverInfo.id}-postgres`, 30);
     }
 
