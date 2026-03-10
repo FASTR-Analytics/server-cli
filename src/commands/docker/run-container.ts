@@ -265,6 +265,37 @@ export async function runContainer(
   //    Remove existing container    //
   //                                 //
   /////////////////////////////////////
+
+  // Save last 200 lines of logs if the previous container crashed (non-zero exit code)
+  const inspectPrevCmd = new Deno.Command("docker", {
+    args: ["inspect", "--format", "{{.State.ExitCode}}", serverInfo.id],
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const inspectPrevResult = await inspectPrevCmd.output();
+  if (inspectPrevResult.success) {
+    const exitCode = parseInt(new TextDecoder().decode(inspectPrevResult.stdout).trim(), 10);
+    if (exitCode !== 0) {
+      const logsDir = join(instanceDirPath, "logs");
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const logFile = join(logsDir, `${timestamp}-crashed-exit${exitCode}.log`);
+      const saveLogsCmd = new Deno.Command("docker", {
+        args: ["logs", "--timestamps", "--tail", "200", serverInfo.id],
+        stdout: "piped",
+        stderr: "piped",
+      });
+      const saveLogsResult = await saveLogsCmd.output();
+      const logContent =
+        new TextDecoder().decode(saveLogsResult.stdout) +
+        new TextDecoder().decode(saveLogsResult.stderr);
+      if (logContent.trim()) {
+        await Deno.writeTextFile(logFile, logContent);
+        console.log(colors.yellow(`⚠️  Container crashed (exit ${exitCode}) — logs saved to logs/${timestamp}-crashed-exit${exitCode}.log`));
+        await sendCrashAlert(config.sendGridApi, serverInfo.id, exitCode, logContent);
+      }
+    }
+  }
+
   const argsRemoveContainer = ["container", "rm", serverInfo.id];
   const cmdRemoveContainer = new Deno.Command("docker", {
     args: argsRemoveContainer,
@@ -355,6 +386,41 @@ export async function runContainer(
   // If pgAdmin is running, connect it to this server's network so it can
   // reach the newly started postgres container.
   await connectPgAdminToNetwork(serverInfo.id);
+}
+
+async function sendCrashAlert(
+  sendGridApi: string,
+  containerId: string,
+  exitCode: number,
+  logTail: string,
+): Promise<void> {
+  const recipients = ["nick@usefuldata.com.au", "timroberton@gmail.com"];
+  const subject = `Container crashed: ${containerId} (exit ${exitCode})`;
+  const plainText = `Container ${containerId} crashed with exit code ${exitCode}.\n\nLast logs:\n\n${logTail}`;
+  const html = `<p>Container <strong>${containerId}</strong> crashed with exit code <strong>${exitCode}</strong>.</p><pre style="background:#f4f4f4;padding:12px;font-size:12px">${logTail.replace(/</g, "&lt;")}</pre>`;
+
+  for (const to of recipients) {
+    const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${sendGridApi}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: "noreply@fastr-analytics.org", name: "FASTR Analytics Platform" },
+        subject,
+        content: [
+          { type: "text/plain", value: plainText },
+          { type: "text/html", value: html },
+        ],
+      }),
+    });
+    if (!res.ok) {
+      const error = await res.text();
+      console.error(`SendGrid error for ${to}: ${res.status} ${error}`);
+    }
+  }
 }
 
 async function connectPgAdminToNetwork(networkId: string): Promise<void> {
