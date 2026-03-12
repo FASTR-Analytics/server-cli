@@ -196,10 +196,48 @@ export async function runContainer(
   //    Run Postgres    //
   //                    //
   ////////////////////////
+
+  // Save last 200 lines of logs if the previous postgres container crashed (non-zero exit code)
+  const inspectPrevPostgresCmd = new Deno.Command("docker", {
+    args: ["inspect", "--format", "{{.State.ExitCode}}", `${serverInfo.id}-postgres`],
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const inspectPrevPostgresResult = await inspectPrevPostgresCmd.output();
+  if (inspectPrevPostgresResult.success) {
+    const exitCode = parseInt(new TextDecoder().decode(inspectPrevPostgresResult.stdout).trim(), 10);
+    if (exitCode !== 0) {
+      const logsDir = join(instanceDirPath, "logs");
+      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+      const logFile = join(logsDir, `${timestamp}-postgres-crashed-exit${exitCode}.log`);
+      const saveLogsCmd = new Deno.Command("docker", {
+        args: ["logs", "--timestamps", "--tail", "200", `${serverInfo.id}-postgres`],
+        stdout: "piped",
+        stderr: "piped",
+      });
+      const saveLogsResult = await saveLogsCmd.output();
+      const logContent =
+        new TextDecoder().decode(saveLogsResult.stdout) +
+        new TextDecoder().decode(saveLogsResult.stderr);
+      if (logContent.trim()) {
+        await Deno.writeTextFile(logFile, logContent);
+        console.log(colors.yellow(`⚠️  Postgres container crashed (exit ${exitCode}) — logs saved to logs/${timestamp}-postgres-crashed-exit${exitCode}.log`));
+        await sendCrashAlert(config.sendGridApi, `${serverInfo.id}-postgres`, exitCode, logContent);
+      }
+    }
+  }
+
+  const argsRemovePostgresContainer = ["container", "rm", `${serverInfo.id}-postgres`];
+  const cmdRemovePostgresContainer = new Deno.Command("docker", {
+    args: argsRemovePostgresContainer,
+  });
+  const chdRemovePostgresContainer = cmdRemovePostgresContainer.spawn();
+  await chdRemovePostgresContainer.output();
+
   const postgresPort = getPostgresPort(serverInfo.port);
   const argsRunPostgres = [
     "run",
-    "--rm",
+    // "--rm",
     "-dt",
     "--name",
     `${serverInfo.id}-postgres`,
