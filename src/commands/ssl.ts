@@ -23,8 +23,14 @@ export async function handleInitSsl(
 
   console.log(colors.cyan(`\nRunning certbot for ${subdomain}...`));
   
+  const certbotEmail = Deno.env.get("CERTBOT_EMAIL");
+  if (!certbotEmail) {
+    console.error(colors.red("Error: CERTBOT_EMAIL environment variable is not set"));
+    Deno.exit(1);
+  }
+
   const cmd = new Deno.Command("certbot", {
-    args: ["--nginx", "-d", subdomain, "--non-interactive", "--agree-tos", "--email", "timroberton@gmail.com", "--redirect"],
+    args: ["--nginx", "-d", subdomain, "--non-interactive", "--agree-tos", "--email", certbotEmail, "--redirect"],
     stdin: "null",
     stdout: "inherit",
     stderr: "inherit",
