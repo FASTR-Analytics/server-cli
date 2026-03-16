@@ -4,122 +4,10 @@ import { getPostgresPort } from "../../core/port-utils.ts";
 import { SUBDIRECTORIES } from "../../core/constants.ts";
 import { Server } from "../../core/types.ts";
 import { colors } from "../../utils/colors.ts";
-import { extractPortFromNginxFile } from "../../utils/nginx-parser.ts";
 import { runAdminContainer } from "./run-admin-container.ts";
-
-import { Config } from "../../core/config.ts";
-
-async function validateServerSetup(
-  serverInfo: Server,
-  config: Config,
-): Promise<void> {
-  const subdomain = `${serverInfo.id}.${config.domain}`;
-  const port = serverInfo.port;
-
-  console.log(colors.cyan("Validating server setup..."));
-
-  // Check nginx configuration exists and matches port
-  const nginxConfigPath = `${config.sitesAvailablePath}/${subdomain}`;
-  try {
-    const nginxPort = await extractPortFromNginxFile(nginxConfigPath);
-
-    if (nginxPort !== null) {
-      if (nginxPort === port) {
-        console.log(colors.green(`✓ Nginx configuration matches port ${port}`));
-      } else {
-        console.log(
-          colors.red(
-            `✗ Nginx port mismatch: config has ${nginxPort}, server uses ${port}`,
-          ),
-        );
-        console.log(
-          colors.dim(`   Run: wb nginx ${serverInfo.id} to fix configuration`),
-        );
-        throw new Error(
-          `Nginx configuration port mismatch for ${serverInfo.id}`,
-        );
-      }
-    } else {
-      console.log(
-        colors.yellow(`⚠️  Warning: Cannot parse port from nginx config`),
-      );
-    }
-  } catch (error) {
-    if (error instanceof Deno.errors.NotFound) {
-      console.log(
-        colors.yellow(
-          `⚠️  Warning: No nginx configuration found for ${subdomain}`,
-        ),
-      );
-      console.log(
-        colors.dim(`   Run: wb nginx ${serverInfo.id} to create one`),
-      );
-    } else if (
-      error instanceof Error &&
-      error.message?.includes("port mismatch")
-    ) {
-      throw error; // Re-throw port mismatch errors to stop container startup
-    } else {
-      console.log(
-        colors.yellow(`⚠️  Warning: Cannot check nginx configuration`),
-      );
-    }
-  }
-
-  // Check SSL certificate exists
-  try {
-    const certCmd = new Deno.Command("certbot", {
-      args: ["certificates"],
-      stdout: "piped",
-      stderr: "piped",
-    });
-    const certResult = await certCmd.output();
-
-    if (certResult.success) {
-      const output = new TextDecoder().decode(certResult.stdout);
-      if (!output.includes(`Certificate Name: ${subdomain}`)) {
-        console.log(
-          colors.yellow(
-            `⚠️  Warning: No SSL certificate found for ${subdomain}`,
-          ),
-        );
-        console.log(
-          colors.dim(`   Run: wb ssl-init ${serverInfo.id} to create one`),
-        );
-      } else {
-        console.log(colors.green(`✓ SSL certificate found for ${subdomain}`));
-      }
-    } else {
-      console.log(
-        colors.yellow(
-          `⚠️  Warning: Cannot check SSL certificates (certbot not available)`,
-        ),
-      );
-    }
-  } catch {
-    console.log(
-      colors.yellow(
-        `⚠️  Warning: Cannot check SSL certificates (certbot not available)`,
-      ),
-    );
-  }
-
-  // Check nginx is enabled
-  const nginxEnabledPath = join(config.sitesEnabledPath, subdomain);
-  try {
-    await Deno.lstat(nginxEnabledPath);
-    console.log(colors.green(`✓ Nginx site enabled for ${subdomain}`));
-  } catch {
-    console.log(
-      colors.yellow(`⚠️  Warning: Nginx site not enabled for ${subdomain}`),
-    );
-    console.log(
-      colors.dim(`   Run: wb nginx-init ${serverInfo.id} to enable it`),
-    );
-  }
-
-  console.log(colors.dim(""));
-}
+import { validateServerSetup } from "./validate-server.ts";
+import { sendCrashAlert } from "./send-crash-alert.ts";
+import { connectPgAdminToNetwork } from "./connect-pgadmin.ts";
 
 export async function runContainer(
   serverInfo: Server,
@@ -132,8 +20,8 @@ export async function runContainer(
     );
   }
 
-  // Validate server setup first
   await validateServerSetup(serverInfo, config);
+
   //////////////////////
   //                  //
   //    Check dirs    //
@@ -227,37 +115,26 @@ export async function runContainer(
     }
   }
 
-  const argsRemovePostgresContainer = ["container", "rm", `${serverInfo.id}-postgres`];
   const cmdRemovePostgresContainer = new Deno.Command("docker", {
-    args: argsRemovePostgresContainer,
+    args: ["container", "rm", `${serverInfo.id}-postgres`],
   });
   const chdRemovePostgresContainer = cmdRemovePostgresContainer.spawn();
   await chdRemovePostgresContainer.output();
 
   const postgresPort = getPostgresPort(serverInfo.port);
-  const argsRunPostgres = [
-    "run",
-    // "--rm",
-    "-dt",
-    "--name",
-    `${serverInfo.id}-postgres`,
-    "--network",
-    serverInfo.id,
-    "-p",
-    `${postgresPort}:5432`,
-    "-e",
-    `POSTGRES_PASSWORD=${config.postgresPassword}`,
-    "-e",
-    `PGDATA=/var/lib/postgresql/data/pgdata`,
-    "-v",
-    `${join(instanceDirPath, "databases")}:/var/lib/postgresql/data`,
-    "-v",
-    `${join(instanceDirPath, "sandbox")}:/app/sandbox`,
-    "postgres:17.4",
-  ];
-  // console.log("docker", argsRunPostgres.join(" "));
   const cmdRunPostgres = new Deno.Command("docker", {
-    args: argsRunPostgres,
+    args: [
+      "run",
+      "-dt",
+      "--name", `${serverInfo.id}-postgres`,
+      "--network", serverInfo.id,
+      "-p", `${postgresPort}:5432`,
+      "-e", `POSTGRES_PASSWORD=${config.postgresPassword}`,
+      "-e", `PGDATA=/var/lib/postgresql/data/pgdata`,
+      "-v", `${join(instanceDirPath, "databases")}:/var/lib/postgresql/data`,
+      "-v", `${join(instanceDirPath, "sandbox")}:/app/sandbox`,
+      "postgres:17.4",
+    ],
   });
   const chdRunPostgres = cmdRunPostgres.spawn();
   await chdRunPostgres.output();
@@ -276,22 +153,19 @@ export async function runContainer(
   //    Run Valkey      //
   //                    //
   ////////////////////////
-  const argsRunValkey = [
-    "run",
-    "--rm",
-    "-dt",
-    "--name",
-    `${serverInfo.id}-valkey`,
-    "--network",
-    serverInfo.id,
-    "-v",
-    `${join(instanceDirPath, "valkey")}:/data`,
-    "valkey/valkey:8.0",
-    "valkey-server",
-    "--appendonly",
-    "yes",
-  ];
-  const cmdRunValkey = new Deno.Command("docker", { args: argsRunValkey });
+  const cmdRunValkey = new Deno.Command("docker", {
+    args: [
+      "run",
+      "--rm",
+      "-dt",
+      "--name", `${serverInfo.id}-valkey`,
+      "--network", serverInfo.id,
+      "-v", `${join(instanceDirPath, "valkey")}:/data`,
+      "valkey/valkey:8.0",
+      "valkey-server",
+      "--appendonly", "yes",
+    ],
+  });
   const chdRunValkey = cmdRunValkey.spawn();
   const valkeyOutput = await chdRunValkey.output();
   if (!valkeyOutput.success) {
@@ -334,9 +208,8 @@ export async function runContainer(
     }
   }
 
-  const argsRemoveContainer = ["container", "rm", serverInfo.id];
   const cmdRemoveContainer = new Deno.Command("docker", {
-    args: argsRemoveContainer,
+    args: ["container", "rm", serverInfo.id],
   });
   const chdRemoveContainer = cmdRemoveContainer.spawn();
   await chdRemoveContainer.output();
@@ -347,76 +220,44 @@ export async function runContainer(
   //                     //
   /////////////////////////
   const port = serverInfo.port;
-  const argsRunContainer = [
-    "run",
-    // "--rm",
-    ...(interactive ? ["-it"] : ["-dt"]),
-    "--name",
-    serverInfo.id,
-    "--network",
-    serverInfo.id,
-    "-p",
-    `${port}:8000`,
-    "-v",
-    "/var/run/docker.sock:/var/run/docker.sock",
-    "-v",
-    `${join(instanceDirPath, "databases")}:/app/databases`,
-    "-v",
-    `${join(instanceDirPath, "sandbox")}:/app/sandbox`,
-    "-v",
-    `${join(instanceDirPath, "assets")}:/app/assets`,
-    "-e",
-    `SANDBOX_DIR_PATH_EXTERNAL=${join(instanceDirPath, "sandbox")}`,
-    ...(serverInfo.adminVersion
-      ? ["-e", `ADMIN_SERVER_HOST=http://${serverInfo.id}-admin:8001`]
-      : []),
-    "-e",
-    `SERVER_VERSION=${serverInfo.serverVersion || "latest"}`,
-    ...(serverInfo.adminVersion
-      ? ["-e", `ADMIN_VERSION=${serverInfo.adminVersion}`]
-      : []),
-    "-e",
-    `DATABASE_FOLDER=${serverInfo.instanceDir || serverInfo.id}`,
-    "-e",
-    `CLERK_PUBLISHABLE_KEY=${config.clerkPublishableKey}`,
-    "-e",
-    `CLERK_SECRET_KEY=${config.clerkSecretKey}`,
-    "-e",
-    `INSTANCE_ID='${serverInfo.id}'`,
-    "-e",
-    `INSTANCE_NAME='${serverInfo.label}'`,
-    ...(serverInfo.french ? ["-e", `INSTANCE_LANGUAGE=fr`] : []),
-    ...(serverInfo.ethiopian ? ["-e", `INSTANCE_CALENDAR=ethiopian`] : []),
-    ...(serverInfo.openAccess ? ["-e", `OPEN_ACCESS=1`] : []),
-    "-e",
-    `INSTANCE_REDIRECT_URL=https://${serverInfo.id}.${config.domain}`,
-    "-e",
-    `PG_HOST=${serverInfo.id}-postgres`,
-    "-e",
-    `PG_PORT=5432`,
-    "-e",
-    `ANTHROPIC_API_URL=${config.anthropicApiUrl}`,
-    "-e",
-    `ANTHROPIC_API_KEY=${config.anthropicApiKey}`,
-    "-e",
-    `STATUS_API_KEY=${config.statusApiKey}`,
-    "-e",
-    `SEND_GRID_API=${config.sendGridApi}`,
-    "-e",
-    `PG_PASSWORD=${config.pgPassword}`,
-    "-e",
-    `VALKEY_URL=redis://${serverInfo.id}-valkey:6379`,
-    getServerImageName(serverInfo.serverVersion),
-  ];
-
-  function getServerImageName(version: string): string {
-    const [major, minor] = version.split(".").map(Number);
-    const isOldVersion = major === 1 && minor < 6;
-    const imageFamily = isOldVersion ? "wb-hmis-server" : "wb-fastr-server";
-    return `timroberton/comb:${imageFamily}-v${version}`;
-  }
   const cmdRunContainer = new Deno.Command("docker", {
-    args: argsRunContainer,
+    args: [
+      "run",
+      ...(interactive ? ["-it"] : ["-dt"]),
+      "--name", serverInfo.id,
+      "--network", serverInfo.id,
+      "-p", `${port}:8000`,
+      "-v", "/var/run/docker.sock:/var/run/docker.sock",
+      "-v", `${join(instanceDirPath, "databases")}:/app/databases`,
+      "-v", `${join(instanceDirPath, "sandbox")}:/app/sandbox`,
+      "-v", `${join(instanceDirPath, "assets")}:/app/assets`,
+      "-e", `SANDBOX_DIR_PATH_EXTERNAL=${join(instanceDirPath, "sandbox")}`,
+      ...(serverInfo.adminVersion
+        ? ["-e", `ADMIN_SERVER_HOST=http://${serverInfo.id}-admin:8001`]
+        : []),
+      "-e", `SERVER_VERSION=${serverInfo.serverVersion || "latest"}`,
+      ...(serverInfo.adminVersion
+        ? ["-e", `ADMIN_VERSION=${serverInfo.adminVersion}`]
+        : []),
+      "-e", `DATABASE_FOLDER=${serverInfo.instanceDir || serverInfo.id}`,
+      "-e", `CLERK_PUBLISHABLE_KEY=${config.clerkPublishableKey}`,
+      "-e", `CLERK_SECRET_KEY=${config.clerkSecretKey}`,
+      "-e", `INSTANCE_ID='${serverInfo.id}'`,
+      "-e", `INSTANCE_NAME='${serverInfo.label}'`,
+      ...(serverInfo.french ? ["-e", `INSTANCE_LANGUAGE=fr`] : []),
+      ...(serverInfo.ethiopian ? ["-e", `INSTANCE_CALENDAR=ethiopian`] : []),
+      ...(serverInfo.openAccess ? ["-e", `OPEN_ACCESS=1`] : []),
+      "-e", `INSTANCE_REDIRECT_URL=https://${serverInfo.id}.${config.domain}`,
+      "-e", `PG_HOST=${serverInfo.id}-postgres`,
+      "-e", `PG_PORT=5432`,
+      "-e", `ANTHROPIC_API_URL=${config.anthropicApiUrl}`,
+      "-e", `ANTHROPIC_API_KEY=${config.anthropicApiKey}`,
+      "-e", `STATUS_API_KEY=${config.statusApiKey}`,
+      "-e", `SEND_GRID_API=${config.sendGridApi}`,
+      "-e", `PG_PASSWORD=${config.pgPassword}`,
+      "-e", `VALKEY_URL=redis://${serverInfo.id}-valkey:6379`,
+      getServerImageName(serverInfo.serverVersion),
+    ],
   });
   const chdRunContainer = cmdRunContainer.spawn();
   await chdRunContainer.output();
@@ -426,62 +267,9 @@ export async function runContainer(
   await connectPgAdminToNetwork(serverInfo.id);
 }
 
-async function sendCrashAlert(
-  sendGridApi: string,
-  containerId: string,
-  exitCode: number,
-  logTail: string,
-): Promise<void> {
-  const recipientsEnv = Deno.env.get("ALERT_RECIPIENTS");
-  const fromEmail = Deno.env.get("ALERT_FROM_EMAIL");
-  if (!recipientsEnv || !fromEmail) {
-    console.error("Skipping crash alert: ALERT_RECIPIENTS or ALERT_FROM_EMAIL not set");
-    return;
-  }
-  const recipients = recipientsEnv.split(",").map((r: string) => r.trim()).filter(Boolean);
-  const subject = `Container crashed: ${containerId} (exit ${exitCode})`;
-  const plainText = `Container ${containerId} crashed with exit code ${exitCode}.\n\nLast logs:\n\n${logTail}`;
-  const html = `<p>Container <strong>${containerId}</strong> crashed with exit code <strong>${exitCode}</strong>.</p><pre style="background:#f4f4f4;padding:12px;font-size:12px">${logTail.replace(/</g, "&lt;")}</pre>`;
-
-  for (const to of recipients) {
-    const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${sendGridApi}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        personalizations: [{ to: [{ email: to }] }],
-        from: { email: fromEmail },
-        subject,
-        content: [
-          { type: "text/plain", value: plainText },
-          { type: "text/html", value: html },
-        ],
-      }),
-    });
-    if (!res.ok) {
-      const error = await res.text();
-      console.error(`SendGrid error for ${to}: ${res.status} ${error}`);
-    }
-  }
-}
-
-async function connectPgAdminToNetwork(networkId: string): Promise<void> {
-  const inspectCmd = new Deno.Command("docker", {
-    args: ["inspect", "--format", "{{.State.Running}}", "pgadmin"],
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const inspectResult = await inspectCmd.output();
-  const isRunning =
-    new TextDecoder().decode(inspectResult.stdout).trim() === "true";
-  if (!isRunning) return;
-
-  const connectCmd = new Deno.Command("docker", {
-    args: ["network", "connect", networkId, "pgadmin"],
-    stdout: "piped",
-    stderr: "piped",
-  });
-  await connectCmd.output();
+function getServerImageName(version: string): string {
+  const [major, minor] = version.split(".").map(Number);
+  const isOldVersion = major === 1 && minor < 6;
+  const imageFamily = isOldVersion ? "wb-hmis-server" : "wb-fastr-server";
+  return `timroberton/comb:${imageFamily}-v${version}`;
 }
