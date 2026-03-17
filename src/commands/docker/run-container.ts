@@ -6,7 +6,6 @@ import { Server } from "../../core/types.ts";
 import { colors } from "../../utils/colors.ts";
 import { runAdminContainer } from "./run-admin-container.ts";
 import { validateServerSetup } from "./validate-server.ts";
-import { sendCrashAlert } from "./send-crash-alert.ts";
 import { connectPgAdminToNetwork } from "./connect-pgadmin.ts";
 
 export async function runContainer(
@@ -85,36 +84,6 @@ export async function runContainer(
   //                    //
   ////////////////////////
 
-  // Save last 200 lines of logs if the previous postgres container crashed (non-zero exit code)
-  const inspectPrevPostgresCmd = new Deno.Command("docker", {
-    args: ["inspect", "--format", "{{.State.ExitCode}}", `${serverInfo.id}-postgres`],
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const inspectPrevPostgresResult = await inspectPrevPostgresCmd.output();
-  if (inspectPrevPostgresResult.success) {
-    const exitCode = parseInt(new TextDecoder().decode(inspectPrevPostgresResult.stdout).trim(), 10);
-    if (exitCode !== 0) {
-      const logsDir = join(instanceDirPath, "logs");
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const logFile = join(logsDir, `${timestamp}-postgres-crashed-exit${exitCode}.log`);
-      const saveLogsCmd = new Deno.Command("docker", {
-        args: ["logs", "--timestamps", "--tail", "200", `${serverInfo.id}-postgres`],
-        stdout: "piped",
-        stderr: "piped",
-      });
-      const saveLogsResult = await saveLogsCmd.output();
-      const logContent =
-        new TextDecoder().decode(saveLogsResult.stdout) +
-        new TextDecoder().decode(saveLogsResult.stderr);
-      if (logContent.trim()) {
-        await Deno.writeTextFile(logFile, logContent);
-        console.log(colors.yellow(`⚠️  Postgres container crashed (exit ${exitCode}) — logs saved to logs/${timestamp}-postgres-crashed-exit${exitCode}.log`));
-        await sendCrashAlert(config.sendGridApi, `${serverInfo.id}-postgres`, exitCode, logContent);
-      }
-    }
-  }
-
   const cmdRemovePostgresContainer = new Deno.Command("docker", {
     args: ["container", "rm", `${serverInfo.id}-postgres`],
   });
@@ -177,36 +146,6 @@ export async function runContainer(
   //    Remove existing container    //
   //                                 //
   /////////////////////////////////////
-
-  // Save last 200 lines of logs if the previous container crashed (non-zero exit code)
-  const inspectPrevCmd = new Deno.Command("docker", {
-    args: ["inspect", "--format", "{{.State.ExitCode}}", serverInfo.id],
-    stdout: "piped",
-    stderr: "piped",
-  });
-  const inspectPrevResult = await inspectPrevCmd.output();
-  if (inspectPrevResult.success) {
-    const exitCode = parseInt(new TextDecoder().decode(inspectPrevResult.stdout).trim(), 10);
-    if (exitCode !== 0) {
-      const logsDir = join(instanceDirPath, "logs");
-      const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-      const logFile = join(logsDir, `${timestamp}-crashed-exit${exitCode}.log`);
-      const saveLogsCmd = new Deno.Command("docker", {
-        args: ["logs", "--timestamps", "--tail", "200", serverInfo.id],
-        stdout: "piped",
-        stderr: "piped",
-      });
-      const saveLogsResult = await saveLogsCmd.output();
-      const logContent =
-        new TextDecoder().decode(saveLogsResult.stdout) +
-        new TextDecoder().decode(saveLogsResult.stderr);
-      if (logContent.trim()) {
-        await Deno.writeTextFile(logFile, logContent);
-        console.log(colors.yellow(`⚠️  Container crashed (exit ${exitCode}) — logs saved to logs/${timestamp}-crashed-exit${exitCode}.log`));
-        await sendCrashAlert(config.sendGridApi, serverInfo.id, exitCode, logContent);
-      }
-    }
-  }
 
   const cmdRemoveContainer = new Deno.Command("docker", {
     args: ["container", "rm", serverInfo.id],
