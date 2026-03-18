@@ -27,6 +27,7 @@ ${colors.bold("UPDATE OPTIONS")}
   ${colors.dim("--server <ver>")}           Set server version
   ${colors.dim("--admin <ver>")}            Set admin version
   ${colors.dim("--instance-dir <name>")}    Set custom instance directory name
+  ${colors.dim("--volume <name>")}          Set volume name in /mnt/ for disk usage tracking (use 'none' to remove)
 
 ${colors.bold("INITIALIZATION COMMANDS")} ${colors.dim("(setup server infrastructure)")}
   ${colors.cyan("wb init-dirs <id>")}            Create directories for server
