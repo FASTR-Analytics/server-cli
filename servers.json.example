@@ -17,6 +17,7 @@
     "french": false,
     "ethiopian": false,
     "openAccess": false,
+    "volume": "volume_nyc3_abc123",
     "tags": ["production"]
   }
 ]

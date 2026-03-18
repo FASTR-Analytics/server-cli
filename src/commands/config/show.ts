@@ -23,6 +23,7 @@ ${colors.bold("Server Details:")}
   ${colors.cyan("Label:")}          ${server.label}
   ${colors.cyan("Port:")}           ${server.port}
   ${colors.cyan("Instance Dir:")}   ${server.instanceDir || server.id}
+  ${colors.cyan("Volume:")}         ${server.volume || "None"}
   ${colors.cyan("Server Version:")} ${server.serverVersion || "latest"}
   ${colors.cyan("Admin Version:")}  ${server.adminVersion || "None"}
   ${colors.cyan("French:")}         ${server.french ? "Yes" : "No"}

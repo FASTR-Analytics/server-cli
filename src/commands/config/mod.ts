@@ -17,6 +17,7 @@ type UpdateOptions = {
   server?: string;
   admin?: string;
   "instance-dir"?: string;
+  volume?: string;
 };
 
 function parseBooleanOption(value: string): boolean {
@@ -33,7 +34,7 @@ export async function handleConfig(
 ): Promise<void> {
   const parsed = parseArgs(args, {
     boolean: ["json", "force"],
-    string: ["label", "french", "ethiopian", "open-access", "server", "admin", "instance-dir", "tag"],
+    string: ["label", "french", "ethiopian", "open-access", "server", "admin", "instance-dir", "volume", "tag"],
     alias: {
       "open-access": "open_access",
       "instance-dir": "instance_dir"
@@ -69,18 +70,18 @@ export async function handleConfig(
 
     case "update": {
       // Validate known options
-      const knownOptions = new Set(["_", "json", "force", "label", "french", "ethiopian", "open-access", "open_access", "server", "admin", "instance-dir", "instance_dir"]);
+      const knownOptions = new Set(["_", "json", "force", "label", "french", "ethiopian", "open-access", "open_access", "server", "admin", "instance-dir", "instance_dir", "volume"]);
       const providedOptions = Object.keys(parsed);
       const unknownOptions = providedOptions.filter(opt => !knownOptions.has(opt));
 
       if (unknownOptions.length > 0) {
         console.error(colors.red(`Error: Unknown option(s): --${unknownOptions.join(", --")}`));
-        console.error(colors.dim("Valid options: --label, --french, --ethiopian, --open-access, --server, --admin, --instance-dir"));
+        console.error(colors.dim("Valid options: --label, --french, --ethiopian, --open-access, --server, --admin, --instance-dir, --volume"));
         Deno.exit(1);
       }
 
       const targets = parsed._ as string[];
-      
+
       const options: UpdateOptions = {};
 
       if (parsed.label) options.label = parsed.label;
@@ -90,6 +91,7 @@ export async function handleConfig(
       if (parsed.server) options.server = parsed.server;
       if (parsed.admin) options.admin = parsed.admin;
       if (parsed["instance-dir"]) options["instance-dir"] = parsed["instance-dir"];
+      if (parsed.volume !== undefined) options.volume = parsed.volume;
 
       await handleConfigUpdate(filePath, targets, options);
       break;

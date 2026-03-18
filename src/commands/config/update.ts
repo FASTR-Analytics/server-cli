@@ -11,6 +11,7 @@ type UpdateOptions = {
   server?: string;
   admin?: string;
   "instance-dir"?: string;
+  volume?: string;
 };
 
 async function updateSingleServer(
@@ -69,6 +70,15 @@ async function updateSingleServer(
     changesList.push(`instance-dir: ${options["instance-dir"]}`);
   }
 
+  if (options.volume !== undefined) {
+    if (options.volume === "" || options.volume.toLowerCase() === "none") {
+      changes.volume = undefined;
+      changesList.push(`volume: None (removed)`);
+    } else {
+      changes.volume = options.volume;
+      changesList.push(`volume: ${options.volume}`);
+    }
+  }
 
   if (changesList.length === 0) {
     console.log(colors.yellow(`No changes specified for server '${id}'`));

@@ -3,6 +3,7 @@ export type Server = {
   label: string;
   port: number;
   instanceDir?: string;
+  volume?: string;
   serverVersion: string;
   adminVersion?: string;
   french?: boolean;
