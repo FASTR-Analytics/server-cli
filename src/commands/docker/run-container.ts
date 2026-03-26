@@ -27,7 +27,7 @@ export async function runContainer(
   //                  //
   //////////////////////
   const instanceDirPath = join(
-    config.mountPath,
+    serverInfo.volume ? join("/mnt", serverInfo.volume) : config.mountPath,
     serverInfo.instanceDir || serverInfo.id,
   );
   try {

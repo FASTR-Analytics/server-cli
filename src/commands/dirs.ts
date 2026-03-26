@@ -18,8 +18,9 @@ export async function handleInitDirs(
   }
 
   const instanceDir = server.instanceDir || server.id;
-  const instanceDirPath = join(mountPath, instanceDir);
-  
+  const basePath = server.volume ? join("/mnt", server.volume) : mountPath;
+  const instanceDirPath = join(basePath, instanceDir);
+
   console.log(colors.cyan(`Creating directories for ${serverId}...`));
   console.log(colors.dim(`Instance directory: ${instanceDirPath}`));
 
@@ -63,8 +64,9 @@ export async function handleRemoveDirs(
   }
 
   const instanceDir = server.instanceDir || server.id;
-  const instanceDirPath = join(mountPath, instanceDir);
-  
+  const basePath = server.volume ? join("/mnt", server.volume) : mountPath;
+  const instanceDirPath = join(basePath, instanceDir);
+
   if (!force) {
     console.log(colors.yellow(`⚠️  WARNING: This will permanently delete all data in:`));
     console.log(colors.red(`   ${instanceDirPath}`));
