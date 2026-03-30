@@ -13,6 +13,7 @@ import { handleRestart } from "../commands/docker/restart.ts";
 import { handlePrune } from "../commands/docker/prune.ts";
 import { handleRunPgAdmin } from "../commands/docker/run-pgadmin.ts";
 import { handleStopPgAdmin } from "../commands/docker/stop-pgadmin.ts";
+import { handleMoveVolume } from "../commands/move-volume.ts";
 import { showHelp } from "../utils/help.ts";
 import { colors } from "../utils/colors.ts";
 
@@ -35,7 +36,8 @@ export async function runCLI(): Promise<void> {
     command !== "init-ssl" &&
     command !== "remove-ssl" &&
     command !== "list-ssl" &&
-    command !== "list-nginx";
+    command !== "list-nginx" &&
+    command !== "move-volume";
   const args = needsArgParsing
     ? parseArgs(Deno.args, {
         boolean: ["pull", "interactive", "help", "force"],
@@ -212,6 +214,19 @@ export async function runCLI(): Promise<void> {
     const targets = rest;
     if (subcommand) targets.unshift(subcommand);
     await handleRun(targets, args.interactive);
+    Deno.exit(0);
+  }
+
+  // Handle move-volume command
+  if (command === "move-volume") {
+    const serverId = subcommand;
+    const newVolume = rest[0];
+    if (!serverId || !newVolume) {
+      console.error(colors.red("Error: Server ID and target volume required"));
+      console.error(colors.dim("Usage: wb move-volume <server-id> <new-volume>"));
+      Deno.exit(1);
+    }
+    await handleMoveVolume(config.serversFilePath, serverId, newVolume, config.mountPath);
     Deno.exit(0);
   }
 

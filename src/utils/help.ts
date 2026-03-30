@@ -34,6 +34,7 @@ ${colors.bold("INITIALIZATION COMMANDS")} ${colors.dim("(setup server infrastruc
   ${colors.cyan("wb init-nginx <id>")}           Setup nginx configuration
   ${colors.cyan("wb init-ssl <id>")}             Setup SSL certificate with certbot
   ${colors.cyan("wb remove-dirs <id>")}          Remove server directories (requires confirmation)
+  ${colors.cyan("wb move-volume <id> <volume>")}  Move server data to a different volume (stop → copy → update config → start)
   ${colors.cyan("wb remove-nginx <id>")}         Remove nginx configuration
   ${colors.cyan("wb remove-ssl <id>")}           Revoke and remove SSL certificate
   ${colors.cyan("wb list-nginx")}                List all nginx configurations
