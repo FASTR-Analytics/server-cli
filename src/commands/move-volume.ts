@@ -56,9 +56,45 @@ export async function handleMoveVolume(
     if (!(e instanceof Deno.errors.NotFound)) throw e;
   }
 
+  // Check available space on target volume before stopping anything
+  const duCmd = new Deno.Command("du", {
+    args: ["-s", "--block-size=1", oldInstanceDirPath],
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const duResult = await duCmd.output();
+  if (duResult.code !== 0) {
+    console.error(colors.red(`Error: Could not measure source directory size.`));
+    Deno.exit(1);
+  }
+  const sourceBytes = parseInt(new TextDecoder().decode(duResult.stdout).trim().split(/\s+/)[0], 10);
+
+  const dfCmd = new Deno.Command("df", {
+    args: ["--block-size=1", "--output=avail", newBasePath],
+    stdout: "piped",
+    stderr: "piped",
+  });
+  const dfResult = await dfCmd.output();
+  if (dfResult.code !== 0) {
+    console.error(colors.red(`Error: Could not check available space on ${newBasePath}.`));
+    Deno.exit(1);
+  }
+  // df output: header line + value line
+  const availBytes = parseInt(new TextDecoder().decode(dfResult.stdout).trim().split("\n").pop()!.trim(), 10);
+
+  const toGB = (b: number) => (b / 1024 ** 3).toFixed(2);
+
+  if (sourceBytes >= availBytes) {
+    console.error(colors.red(`Error: Not enough space on ${newBasePath}.`));
+    console.error(colors.dim(`  Required:  ${toGB(sourceBytes)} GB`));
+    console.error(colors.dim(`  Available: ${toGB(availBytes)} GB`));
+    Deno.exit(1);
+  }
+
   console.log(colors.cyan(`Moving '${serverId}' from ${oldBasePath} → ${newBasePath}`));
   console.log(colors.dim(`  Source:      ${oldInstanceDirPath}`));
   console.log(colors.dim(`  Destination: ${newInstanceDirPath}`));
+  console.log(colors.dim(`  Data size:   ${toGB(sourceBytes)} GB  |  Space available: ${toGB(availBytes)} GB`));
   console.log("");
 
   // 1. Stop server
