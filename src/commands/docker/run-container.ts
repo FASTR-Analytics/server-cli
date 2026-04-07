@@ -195,6 +195,7 @@ export async function runContainer(
       "-e", `SEND_GRID_API=${config.sendGridApi}`,
       "-e", `PG_PASSWORD=${config.pgPassword}`,
       "-e", `VALKEY_URL=redis://${serverInfo.id}-valkey:6379`,
+      ...(config.githubToken ? ["-e", `GITHUB_TOKEN=${config.githubToken}`] : []),
       getServerImageName(serverInfo.serverVersion),
     ],
   });

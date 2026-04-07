@@ -12,6 +12,7 @@ export interface Config {
   statusApiKey: string;
   sendGridApi: string;
   pgPassword: string;
+  githubToken: string | undefined;
 }
 
 let config: Config | null = null;
@@ -34,6 +35,7 @@ export function getConfig(): Config {
   const statusApiKey = Deno.env.get("STATUS_API_KEY");
   const sendGridApi = Deno.env.get("SEND_GRID_API");
   const pgPassword = Deno.env.get("PG_PASSWORD");
+  const githubToken = Deno.env.get("GITHUB_TOKEN");
 
   if (
     !clerkPublishableKey ||
@@ -69,6 +71,7 @@ export function getConfig(): Config {
     statusApiKey,
     sendGridApi,
     pgPassword,
+    githubToken,
   };
 
   return config;
