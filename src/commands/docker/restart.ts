@@ -19,7 +19,7 @@ export async function handleRestart(targets: string[], interactive: boolean = fa
   try {
     const resolvedIds = await resolveTargets(store, targets);
 
-    // First stop all specified containers
+    // Restart each server sequentially: stop then start before moving to the next
     for (const id of resolvedIds) {
       const serverInfo = await store.get(id);
       if (!serverInfo) {
@@ -33,18 +33,12 @@ export async function handleRestart(targets: string[], interactive: boolean = fa
       }
       await stopContainer(`${serverInfo.id}-valkey`);
       await stopContainer(`${serverInfo.id}-postgres`, 30);
-    }
 
-    // Wait a moment
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Wait a moment before starting
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // Then start all specified containers
-    for (const id of resolvedIds) {
-      const serverInfo = await store.get(id);
-      if (serverInfo) {
-        console.log("Run container:", serverInfo.id, String(serverInfo.port));
-        await runContainer(serverInfo, interactive);
-      }
+      console.log("Run container:", serverInfo.id, String(serverInfo.port));
+      await runContainer(serverInfo, interactive);
     }
   } catch (error) {
     console.error(colors.red(`Error: ${error instanceof Error ? error.message : String(error)}`));
