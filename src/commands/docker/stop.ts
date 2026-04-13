@@ -5,6 +5,11 @@ import { stopContainer } from "./stop-container.ts";
 import { stopAdminContainer } from "./stop-admin-container.ts";
 import { colors } from "../../utils/colors.ts";
 
+async function markIntentionalStop(name: string): Promise<void> {
+  const ts = Math.floor(Date.now() / 1000);
+  await Deno.writeTextFile("/var/lib/wb/intentional-stops", `${name}:${ts}\n`, { append: true });
+}
+
 export async function handleStop(targets: string[]): Promise<void> {
   const config = getConfig();
   const store = new ServerStore(config.serversFilePath);
@@ -25,11 +30,15 @@ export async function handleStop(targets: string[]): Promise<void> {
         continue;
       }
       console.log("Stop container:", serverInfo.id, String(serverInfo.port));
+      await markIntentionalStop(serverInfo.id);
       await stopContainer(serverInfo.id);
       if (serverInfo.adminVersion) {
+        await markIntentionalStop(`${serverInfo.id}-admin`);
         await stopAdminContainer(serverInfo.id);
       }
+      await markIntentionalStop(`${serverInfo.id}-valkey`);
       await stopContainer(`${serverInfo.id}-valkey`);
+      await markIntentionalStop(`${serverInfo.id}-postgres`);
       await stopContainer(`${serverInfo.id}-postgres`, 30);
 
       try {
