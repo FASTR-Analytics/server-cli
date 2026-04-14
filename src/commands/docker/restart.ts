@@ -4,6 +4,7 @@ import { resolveTargets } from "../../core/tag-resolver.ts";
 import { runContainer } from "./run-container.ts";
 import { stopContainer } from "./stop-container.ts";
 import { stopAdminContainer } from "./stop-admin-container.ts";
+import { markIntentionalStop } from "./stop.ts";
 import { colors } from "../../utils/colors.ts";
 
 export async function handleRestart(targets: string[], interactive: boolean = false): Promise<void> {
@@ -27,11 +28,15 @@ export async function handleRestart(targets: string[], interactive: boolean = fa
         continue;
       }
       console.log("Stop container:", serverInfo.id, String(serverInfo.port));
+      await markIntentionalStop(serverInfo.id);
       await stopContainer(serverInfo.id);
       if (serverInfo.adminVersion) {
+        await markIntentionalStop(`${serverInfo.id}-admin`);
         await stopAdminContainer(serverInfo.id);
       }
+      await markIntentionalStop(`${serverInfo.id}-valkey`);
       await stopContainer(`${serverInfo.id}-valkey`);
+      await markIntentionalStop(`${serverInfo.id}-postgres`);
       await stopContainer(`${serverInfo.id}-postgres`, 30);
 
       // Wait a moment before starting

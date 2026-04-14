@@ -5,7 +5,7 @@ import { stopContainer } from "./stop-container.ts";
 import { stopAdminContainer } from "./stop-admin-container.ts";
 import { colors } from "../../utils/colors.ts";
 
-async function markIntentionalStop(name: string): Promise<void> {
+export async function markIntentionalStop(name: string): Promise<void> {
   const ts = Math.floor(Date.now() / 1000);
   await Deno.writeTextFile("/var/lib/wb/intentional-stops", `${name}:${ts}\n`, { append: true });
 }
