@@ -10,6 +10,7 @@ import { handlePull } from "../commands/docker/pull.ts";
 import { handleStop } from "../commands/docker/stop.ts";
 import { handleRun } from "../commands/docker/run.ts";
 import { handleRestart } from "../commands/docker/restart.ts";
+import { handleBackfillNames } from "../commands/docker/backfill-names.ts";
 import { handlePrune } from "../commands/docker/prune.ts";
 import { handleRunPgAdmin } from "../commands/docker/run-pgadmin.ts";
 import { handleStopPgAdmin } from "../commands/docker/stop-pgadmin.ts";
@@ -235,6 +236,14 @@ export async function runCLI(): Promise<void> {
     const targets = rest;
     if (subcommand) targets.unshift(subcommand);
     await handleRestart(targets, args.interactive);
+    Deno.exit(0);
+  }
+
+  // Handle backfill-names command
+  if (command === "backfill-names") {
+    const targets = rest;
+    if (subcommand) targets.unshift(subcommand);
+    await handleBackfillNames(targets);
     Deno.exit(0);
   }
 

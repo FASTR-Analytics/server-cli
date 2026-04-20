@@ -44,6 +44,7 @@ ${colors.bold("DOCKER COMMANDS")} ${colors.dim("(manage running containers)")}
   ${colors.cyan("wb run <id...>")}     ${colors.dim("(start)")}  Run one or more containers
   ${colors.cyan("wb stop <id...>")}              Stop one or more containers
   ${colors.cyan("wb restart <id...>")}           Restart one or more containers
+  ${colors.cyan("wb backfill-names <id...>")}    Backfill user first/last names from Clerk into each instance DB
   ${colors.cyan("wb pull")}                      Pull docker images
   ${colors.cyan("wb prune")}                     Prune unused docker networks
   ${colors.cyan("wb run-pgadmin")}               Start pgAdmin (reads all servers, binds to localhost:5050)
