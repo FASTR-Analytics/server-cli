@@ -43,42 +43,45 @@ const BATCH_SIZE = 100;
 let updated = 0;
 let notFound = 0;
 
-for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-  const batch = rows.slice(i, i + BATCH_SIZE);
+// Build a map of email -> clerk user by fetching one at a time.
+// Clerk's bulk email filter (?email_address[]=...) does not filter reliably —
+// it ignores the filter and returns arbitrary users. Fetching individually is
+// slower but guarantees we only update the right rows.
+for (const row of rows) {
   const params = new URLSearchParams();
-  for (const row of batch) params.append("email_address[]", row.email);
+  params.set("email_address", row.email);
+  params.set("limit", "1");
 
   const res = await fetch(
-    \`https://api.clerk.com/v1/users?\${params}&limit=\${BATCH_SIZE}\`,
+    \`https://api.clerk.com/v1/users?\${params}\`,
     { headers: { Authorization: \`Bearer \${CLERK_SECRET_KEY}\` } },
   );
 
   if (!res.ok) {
-    console.error(\`Clerk API error: \${res.status} \${await res.text()}\`);
-    await sql.end();
-    Deno.exit(1);
+    console.error(\`Clerk API error for \${row.email}: \${res.status} \${await res.text()}\`);
+    continue;
   }
 
   const clerkUsers = await res.json();
+  const clerkUser = clerkUsers[0];
 
-  for (const clerkUser of clerkUsers) {
-    const email = clerkUser.email_addresses[0]?.email_address;
-    if (!email) continue;
-    await sql\`
-      UPDATE users
-      SET first_name = \${clerkUser.first_name}, last_name = \${clerkUser.last_name}
-      WHERE email = \${email} AND first_name IS NULL
-    \`;
-    console.log(\`  ✓ \${email} → \${clerkUser.first_name} \${clerkUser.last_name}\`);
-    updated++;
+  if (!clerkUser) {
+    console.log(\`  - \${row.email} → not in Clerk (skipped)\`);
+    notFound++;
+    continue;
   }
 
-  const foundEmails = new Set(clerkUsers.flatMap((u) => u.email_addresses.map((e) => e.email_address)));
-  for (const row of batch) {
-    if (!foundEmails.has(row.email)) {
-      console.log(\`  - \${row.email} → not in Clerk (skipped)\`);
-      notFound++;
-    }
+  const result = await sql\`
+    UPDATE users
+    SET first_name = \${clerkUser.first_name}, last_name = \${clerkUser.last_name}
+    WHERE email = \${row.email} AND first_name IS NULL
+  \`;
+
+  if (result.count > 0) {
+    console.log(\`  ✓ \${row.email} → \${clerkUser.first_name} \${clerkUser.last_name}\`);
+    updated++;
+  } else {
+    console.log(\`  ~ \${row.email} → already set (skipped)\`);
   }
 }
 
