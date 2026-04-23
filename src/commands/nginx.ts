@@ -31,6 +31,11 @@ export async function handleInitNginx(
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
   }
+  error_page 502 503 504 /502.html;
+  location = /502.html {
+    alias /var/www/html/502.html;
+    internal;
+  }
 }
 `;
 
