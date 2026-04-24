@@ -42,6 +42,113 @@ export async function handleInitNginx(
   console.log(colors.cyan(`Setting up nginx for ${serverId}...`));
   console.log(colors.dim(`Domain: ${subdomain}`));
 
+  const maintenancePagePath = "/var/www/html/502.html";
+  const maintenancePageHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Under Maintenance</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      color: #1f2937;
+      background: #fff;
+    }
+    .wrap { display: flex; height: 100%; width: 100%; }
+    .panel-left {
+      position: relative;
+      width: 40%;
+      background: #ebf3f1;
+      overflow: hidden;
+      display: none;
+    }
+    .panel-left .circle-1 {
+      position: absolute; bottom: -25%; left: -25%;
+      width: 80%; aspect-ratio: 1;
+      border-radius: 50%; background: #d6e8e4;
+    }
+    .panel-left .circle-2 {
+      position: absolute; top: -25%; right: -25%;
+      width: 60%; aspect-ratio: 1;
+      border-radius: 50%; background: #ddecea;
+    }
+    .panel-left .inner {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      justify-content: space-between;
+      width: 100%; height: 100%;
+      padding: 2.5rem;
+    }
+    .brand { font-weight: 800; font-size: 1rem; letter-spacing: 0.02em; color: #1f2937; }
+    .headline { font-weight: 800; font-size: 3rem; line-height: 1.1; color: #1f2937; }
+    .subhead { margin-top: 0.75rem; font-size: 1.125rem; color: rgba(31, 41, 55, 0.5); }
+    .footer-text { font-size: 0.75rem; color: #6b7280; }
+    .panel-right {
+      flex: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 2rem; overflow-y: auto;
+    }
+    .card { width: 100%; max-width: 28rem; text-align: center; }
+    .card .mobile-brand { display: block; margin-bottom: 2rem; }
+    .card .mobile-brand .title { font-weight: 700; font-size: 1.25rem; color: #1f2937; }
+    .card .mobile-brand .sub { font-size: 0.875rem; color: #6b7280; }
+    .card h1 { font-weight: 800; font-size: 1.75rem; color: #1f2937; margin-bottom: 0.75rem; }
+    .card p { font-size: 1rem; line-height: 1.6; color: #6b7280; margin-bottom: 0.5rem; }
+    .divider {
+      height: 3px; width: 48px;
+      background: #9ac8bd; border-radius: 2px;
+      margin: 0 auto 1.5rem;
+    }
+    @media (min-width: 1024px) {
+      .panel-left { display: flex; }
+      .card .mobile-brand { display: none; }
+      .card { text-align: left; }
+      .divider { margin-left: 0; margin-right: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel-left">
+      <div class="circle-1"></div>
+      <div class="circle-2"></div>
+      <div class="inner">
+        <div class="brand">FASTR</div>
+        <div>
+          <div class="headline">Back in a few minutes</div>
+          <div class="subhead">We'll be back shortly</div>
+        </div>
+        <div class="footer-text">Powered by FASTR</div>
+      </div>
+    </div>
+    <div class="panel-right">
+      <div class="card">
+        <div class="mobile-brand">
+          <div class="title">FASTR</div>
+          <div class="sub">Analytics platform</div>
+        </div>
+        <div class="divider"></div>
+        <h1>Back in a few minutes</h1>
+        <p>This site is temporarily unavailable while we make improvements.</p>
+        <p>Please check back and refresh in a few minutes.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  try {
+    await Deno.lstat(maintenancePagePath);
+    console.log(colors.yellow(`✓ Maintenance page already exists`));
+  } catch {
+    await Deno.writeTextFile(maintenancePagePath, maintenancePageHtml);
+    console.log(colors.green(`✓ Created maintenance page`));
+  }
+
   const nginxFilePath = join(sitesAvailablePath, subdomain);
   
   try {
