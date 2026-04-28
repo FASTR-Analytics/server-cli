@@ -103,6 +103,8 @@ export async function runContainer(
       "-v", `${join(instanceDirPath, "databases")}:/var/lib/postgresql/data`,
       "-v", `${join(instanceDirPath, "sandbox")}:/app/sandbox`,
       "postgres:17.4",
+      "-c", "shared_preload_libraries=pg_stat_statements",
+      "-c", "pg_stat_statements.track=all",
     ],
   });
   const chdRunPostgres = cmdRunPostgres.spawn();
