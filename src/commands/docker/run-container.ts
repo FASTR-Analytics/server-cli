@@ -198,6 +198,7 @@ export async function runContainer(
       "-e", `PG_PASSWORD=${config.pgPassword}`,
       "-e", `VALKEY_URL=redis://${serverInfo.id}-valkey:6379`,
       ...(config.githubToken ? ["-e", `GITHUB_TOKEN=${config.githubToken}`] : []),
+      ...(config.dailyTokenLimit !== undefined ? ["-e", `DAILY_TOKEN_LIMIT=${config.dailyTokenLimit}`] : []),
       getServerImageName(serverInfo.serverVersion),
     ],
   });

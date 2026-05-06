@@ -13,6 +13,7 @@ export interface Config {
   sendGridApi: string;
   pgPassword: string;
   githubToken: string | undefined;
+  dailyTokenLimit: number | undefined;
 }
 
 let config: Config | null = null;
@@ -36,6 +37,8 @@ export function getConfig(): Config {
   const sendGridApi = Deno.env.get("SEND_GRID_API");
   const pgPassword = Deno.env.get("PG_PASSWORD");
   const githubToken = Deno.env.get("GITHUB_TOKEN");
+  const dailyTokenLimitRaw = Deno.env.get("DAILY_TOKEN_LIMIT");
+  const dailyTokenLimit = dailyTokenLimitRaw ? parseInt(dailyTokenLimitRaw) : undefined;
 
   if (
     !clerkPublishableKey ||
@@ -72,6 +75,7 @@ export function getConfig(): Config {
     sendGridApi,
     pgPassword,
     githubToken,
+    dailyTokenLimit,
   };
 
   return config;
