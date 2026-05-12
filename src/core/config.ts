@@ -14,6 +14,7 @@ export interface Config {
   pgPassword: string;
   githubToken: string | undefined;
   dailyTokenLimit: number | undefined;
+  weeklyTokenLimit: number | undefined;
 }
 
 let config: Config | null = null;
@@ -39,6 +40,8 @@ export function getConfig(): Config {
   const githubToken = Deno.env.get("GITHUB_TOKEN");
   const dailyTokenLimitRaw = Deno.env.get("DAILY_TOKEN_LIMIT");
   const dailyTokenLimit = dailyTokenLimitRaw ? parseInt(dailyTokenLimitRaw) : undefined;
+  const weeklyTokenLimitRaw = Deno.env.get("WEEKLY_TOKEN_LIMIT");
+  const weeklyTokenLimit = weeklyTokenLimitRaw ? parseInt(weeklyTokenLimitRaw) : undefined;
 
   if (
     !clerkPublishableKey ||
@@ -76,6 +79,7 @@ export function getConfig(): Config {
     pgPassword,
     githubToken,
     dailyTokenLimit,
+    weeklyTokenLimit,
   };
 
   return config;
