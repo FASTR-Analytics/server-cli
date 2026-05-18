@@ -200,6 +200,7 @@ export async function runContainer(
       ...(config.githubToken ? ["-e", `GITHUB_TOKEN=${config.githubToken}`] : []),
       ...(config.dailyTokenLimit !== undefined ? ["-e", `DAILY_TOKEN_LIMIT=${config.dailyTokenLimit}`] : []),
       ...(config.weeklyTokenLimit !== undefined ? ["-e", `WEEKLY_TOKEN_LIMIT=${config.weeklyTokenLimit}`] : []),
+      ...(serverInfo.volume ? ["-e", `VOLUME_NAME=${serverInfo.volume}`] : []),
       getServerImageName(serverInfo.serverVersion),
     ],
   });
