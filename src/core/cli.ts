@@ -13,6 +13,7 @@ import { handleRestart } from "../commands/docker/restart.ts";
 import { handleBackfillNames } from "../commands/docker/backfill-names.ts";
 import { handlePrune } from "../commands/docker/prune.ts";
 import { handleDebugValkey } from "../commands/docker/debug-valkey.ts";
+import { handleFixValkey } from "../commands/docker/fix-valkey.ts";
 import { handleRunPgAdmin } from "../commands/docker/run-pgadmin.ts";
 import { handleStopPgAdmin } from "../commands/docker/stop-pgadmin.ts";
 import { handleMoveVolume } from "../commands/move-volume.ts";
@@ -256,6 +257,17 @@ export async function runCLI(): Promise<void> {
       Deno.exit(1);
     }
     await handleDebugValkey(subcommand);
+    Deno.exit(0);
+  }
+
+  // Handle fix-valkey command
+  if (command === "fix-valkey") {
+    if (!subcommand) {
+      console.error(colors.red("Error: Server ID required"));
+      console.error(colors.dim("Usage: wb fix-valkey <server-id>"));
+      Deno.exit(1);
+    }
+    await handleFixValkey(subcommand);
     Deno.exit(0);
   }
 

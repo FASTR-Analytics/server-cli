@@ -50,6 +50,7 @@ ${colors.bold("DOCKER COMMANDS")} ${colors.dim("(manage running containers)")}
   ${colors.cyan("wb run-pgadmin")}               Start pgAdmin (reads all servers, binds to localhost:5050)
   ${colors.cyan("wb stop-pgadmin")}              Stop pgAdmin
   ${colors.cyan("wb debug-valkey <id>")}         Run valkey in foreground to diagnose startup failures
+  ${colors.cyan("wb fix-valkey <id>")}           Fix corrupted AOF file (truncates data after corruption point)
 
   ${colors.dim("Special IDs:")}
   ${colors.dim("  all           - All configured servers")}
