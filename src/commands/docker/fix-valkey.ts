@@ -32,7 +32,7 @@ export async function handleFixValkey(serverId: string): Promise<void> {
       "valkey/valkey:8.0",
       "valkey-check-aof",
       "--fix",
-      "/data/appendonly.aof.manifest",
+      "/data/appendonlydir/appendonly.aof.manifest",
     ],
     stdin: "inherit",
     stdout: "inherit",
