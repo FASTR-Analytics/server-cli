@@ -49,6 +49,7 @@ ${colors.bold("DOCKER COMMANDS")} ${colors.dim("(manage running containers)")}
   ${colors.cyan("wb prune")}                     Prune unused docker networks
   ${colors.cyan("wb run-pgadmin")}               Start pgAdmin (reads all servers, binds to localhost:5050)
   ${colors.cyan("wb stop-pgadmin")}              Stop pgAdmin
+  ${colors.cyan("wb debug-valkey <id>")}         Run valkey in foreground to diagnose startup failures
 
   ${colors.dim("Special IDs:")}
   ${colors.dim("  all           - All configured servers")}
