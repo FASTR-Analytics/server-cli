@@ -61,11 +61,16 @@ export async function runCentralContainer(
     //
   }
 
+  const cmdStopPostgresContainer = new Deno.Command("docker", {
+    args: ["container", "stop", `${serverInfo.id}-postgres`],
+    stdout: "null", stderr: "null",
+  });
+  await cmdStopPostgresContainer.output();
   const cmdRemovePostgresContainer = new Deno.Command("docker", {
     args: ["container", "rm", `${serverInfo.id}-postgres`],
+    stdout: "null", stderr: "null",
   });
-  const chdRemovePostgresContainer = cmdRemovePostgresContainer.spawn();
-  await chdRemovePostgresContainer.output();
+  await cmdRemovePostgresContainer.output();
 
   const postgresPort = getPostgresPort(serverInfo.port);
   const cmdRunPostgres = new Deno.Command("docker", {
@@ -86,11 +91,16 @@ export async function runCentralContainer(
   const chdRunPostgres = cmdRunPostgres.spawn();
   await chdRunPostgres.output();
 
+  const cmdStopContainer = new Deno.Command("docker", {
+    args: ["container", "stop", serverInfo.id],
+    stdout: "null", stderr: "null",
+  });
+  await cmdStopContainer.output();
   const cmdRemoveContainer = new Deno.Command("docker", {
     args: ["container", "rm", serverInfo.id],
+    stdout: "null", stderr: "null",
   });
-  const chdRemoveContainer = cmdRemoveContainer.spawn();
-  await chdRemoveContainer.output();
+  await cmdRemoveContainer.output();
 
   const port = serverInfo.port;
   const cmdRunContainer = new Deno.Command("docker", {
