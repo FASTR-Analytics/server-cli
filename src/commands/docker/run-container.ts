@@ -135,6 +135,7 @@ export async function runContainer(
       "valkey/valkey:8.0",
       "valkey-server",
       "--appendonly", "yes",
+      "--appendfsync", "always",
     ],
   });
   const chdRunValkey = cmdRunValkey.spawn();
@@ -201,7 +202,10 @@ export async function runContainer(
       ...(config.dailyTokenLimit !== undefined ? ["-e", `DAILY_TOKEN_LIMIT=${config.dailyTokenLimit}`] : []),
       ...(config.weeklyTokenLimit !== undefined ? ["-e", `WEEKLY_TOKEN_LIMIT=${config.weeklyTokenLimit}`] : []),
       ...(serverInfo.volume ? ["-e", `VOLUME_NAME=${serverInfo.volume}`] : []),
-      getServerImageName(serverInfo.serverVersion),
+      ...(serverInfo.mode === "central" ? ["-e", `INSTANCE_MODE=central`] : []),
+      serverInfo.mode === "central"
+        ? getCentralServerImageName(serverInfo.serverVersion)
+        : getServerImageName(serverInfo.serverVersion),
     ],
   });
   const chdRunContainer = cmdRunContainer.spawn();
@@ -217,4 +221,8 @@ function getServerImageName(version: string): string {
   const isOldVersion = major === 1 && minor < 6;
   const imageFamily = isOldVersion ? "wb-hmis-server" : "wb-fastr-server";
   return `timroberton/comb:${imageFamily}-v${version}`;
+}
+
+function getCentralServerImageName(version: string): string {
+  return `timroberton/comb:wb-fastr-central-v${version}`;
 }

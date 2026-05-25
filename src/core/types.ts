@@ -10,6 +10,7 @@ export type Server = {
   ethiopian?: boolean;
   openAccess?: boolean;
   tags?: string[];
+  mode?: "central";
 };
 
 export type ValidationResult = {

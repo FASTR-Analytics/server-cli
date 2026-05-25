@@ -9,6 +9,7 @@ import { handleListSsl, handleListNginx } from "../commands/list.ts";
 import { handlePull } from "../commands/docker/pull.ts";
 import { handleStop } from "../commands/docker/stop.ts";
 import { handleRun } from "../commands/docker/run.ts";
+import { handleRunCentral } from "../commands/docker/run-central.ts";
 import { handleRestart } from "../commands/docker/restart.ts";
 import { handleBackfillNames } from "../commands/docker/backfill-names.ts";
 import { handlePrune } from "../commands/docker/prune.ts";
@@ -217,6 +218,14 @@ export async function runCLI(): Promise<void> {
     const targets = rest;
     if (subcommand) targets.unshift(subcommand);
     await handleRun(targets, args.interactive);
+    Deno.exit(0);
+  }
+
+  // Handle run-central command
+  if (command === "run-central") {
+    const targets = rest;
+    if (subcommand) targets.unshift(subcommand);
+    await handleRunCentral(targets, args.interactive);
     Deno.exit(0);
   }
 
