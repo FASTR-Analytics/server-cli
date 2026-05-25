@@ -11,6 +11,7 @@ ${colors.bold("CONFIG COMMANDS")} ${colors.dim("(c) - modify servers.json only")
   ${colors.cyan("wb c show <id>")}                  Show details for a server
   ${colors.cyan("wb c show <id> --json")}           Show server details in JSON
   ${colors.cyan("wb c add <id>")}                   Add new server configuration
+  ${colors.cyan("wb c add-central <id>")}           Add new central server configuration
   ${colors.cyan("wb c update <id> [options]")}      Update server configuration
   ${colors.cyan("wb c remove <id>")}                Remove server configuration
   ${colors.cyan("wb c tag <id> <tags...>")}         Add tags to a server

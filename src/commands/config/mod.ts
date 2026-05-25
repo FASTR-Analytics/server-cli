@@ -2,6 +2,7 @@ import { parseArgs } from "@std/cli";
 import { handleConfigList } from "./list.ts";
 import { handleConfigShow } from "./show.ts";
 import { handleConfigAdd } from "./add.ts";
+import { handleConfigAddCentral } from "./add-central.ts";
 import { handleConfigUpdate } from "./update.ts";
 import { handleConfigRemove } from "./remove.ts";
 import { handleConfigValidate } from "./validate.ts";
@@ -65,6 +66,17 @@ export async function handleConfig(
         Deno.exit(1);
       }
       await handleConfigAdd(filePath, id);
+      break;
+    }
+
+    case "add-central": {
+      const id = parsed._[0] as string;
+      if (!id) {
+        console.error(colors.red("Error: Server ID required"));
+        console.error(colors.dim("Usage: wb config add-central <id>"));
+        Deno.exit(1);
+      }
+      await handleConfigAddCentral(filePath, id);
       break;
     }
 
@@ -151,7 +163,7 @@ export async function handleConfig(
 
     default:
       console.error(colors.red(`Error: Unknown config subcommand '${subcommand}'`));
-      console.error(colors.dim("Available: list, show, add, update, remove, validate, backup, restore, tag, untag"));
+      console.error(colors.dim("Available: list, show, add, add-central, update, remove, validate, backup, restore, tag, untag"));
       Deno.exit(1);
   }
 }
