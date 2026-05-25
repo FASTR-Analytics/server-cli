@@ -112,6 +112,7 @@ export async function runCentralContainer(
       "-p", `${port}:8000`,
       "-v", `${join(instanceDirPath, "databases")}:/app/databases`,
       "-v", `${join(instanceDirPath, "assets")}:/app/assets`,
+      "-v", `${config.serversFilePath}:/app/servers.json:ro`,
       "-e", `SERVER_VERSION=${serverInfo.serverVersion}`,
       "-e", `DATABASE_FOLDER=${serverInfo.instanceDir || serverInfo.id}`,
       "-e", `CLERK_PUBLISHABLE_KEY=${config.clerkPublishableKey}`,
