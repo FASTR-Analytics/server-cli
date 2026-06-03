@@ -126,6 +126,7 @@ export async function runCentralContainer(
       "-e", `PG_PASSWORD=${config.pgPassword}`,
       "-e", `STATUS_API_KEY=${config.statusApiKey}`,
       ...(serverInfo.volume ? ["-e", `VOLUME_NAME=${serverInfo.volume}`] : []),
+      ...(config.centralServerSecret ? ["-e", `CENTRAL_SERVER_SECRET=${config.centralServerSecret}`] : []),
       getCentralServerImageName(serverInfo.serverVersion),
     ],
   });

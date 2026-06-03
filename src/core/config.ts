@@ -15,6 +15,7 @@ export interface Config {
   githubToken: string | undefined;
   dailyTokenLimit: number | undefined;
   weeklyTokenLimit: number | undefined;
+  centralServerSecret: string | undefined;
 }
 
 let config: Config | null = null;
@@ -38,6 +39,7 @@ export function getConfig(): Config {
   const sendGridApi = Deno.env.get("SEND_GRID_API");
   const pgPassword = Deno.env.get("PG_PASSWORD");
   const githubToken = Deno.env.get("GITHUB_TOKEN");
+  const centralServerSecret = Deno.env.get("CENTRAL_SERVER_SECRET");
   const dailyTokenLimitRaw = Deno.env.get("DAILY_TOKEN_LIMIT");
   const dailyTokenLimit = dailyTokenLimitRaw ? parseInt(dailyTokenLimitRaw) : undefined;
   const weeklyTokenLimitRaw = Deno.env.get("WEEKLY_TOKEN_LIMIT");
@@ -80,6 +82,7 @@ export function getConfig(): Config {
     githubToken,
     dailyTokenLimit,
     weeklyTokenLimit,
+    centralServerSecret,
   };
 
   return config;

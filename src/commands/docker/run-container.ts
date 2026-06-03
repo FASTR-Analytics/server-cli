@@ -202,6 +202,7 @@ export async function runContainer(
       ...(config.dailyTokenLimit !== undefined ? ["-e", `DAILY_TOKEN_LIMIT=${config.dailyTokenLimit}`] : []),
       ...(config.weeklyTokenLimit !== undefined ? ["-e", `WEEKLY_TOKEN_LIMIT=${config.weeklyTokenLimit}`] : []),
       ...(serverInfo.volume ? ["-e", `VOLUME_NAME=${serverInfo.volume}`] : []),
+      ...(config.centralServerSecret ? ["-e", `CENTRAL_SERVER_SECRET=${config.centralServerSecret}`] : []),
       ...(serverInfo.mode === "central" ? ["-e", `INSTANCE_MODE=central`] : []),
       serverInfo.mode === "central"
         ? getCentralServerImageName(serverInfo.serverVersion)
