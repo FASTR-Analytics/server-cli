@@ -8,19 +8,22 @@ set -e
 # Store start time
 START_TIME=$(date +%s)
 
+# Resolve the directory this script lives in
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 # Error trap for cleanup
 trap 'echo "ERROR: Build failed!"; exit 1' ERR
 
 echo "Compiling Deno application..."
 deno compile \
-  --env-file=/Users/timroberton/projects/_1_WEB_APPS/wb-fastr-cli/.env.production.local \
+  --env-file="$SCRIPT_DIR/.env.production.local" \
   --allow-env \
   --allow-run \
   --allow-read \
   --allow-write \
   --target x86_64-unknown-linux-gnu \
-  -o /Users/timroberton/projects/_1_WEB_APPS/wb-fastr-cli/wb \
-  /Users/timroberton/projects/_1_WEB_APPS/wb-fastr-cli/main.ts
+  -o "$SCRIPT_DIR/wb" \
+  "$SCRIPT_DIR/main.ts"
 
 echo "Committing changes to git..."
 git add .
