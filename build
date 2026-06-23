@@ -31,7 +31,7 @@ git commit -m "Build at $(date +%Y_%m_%d_%H_%M_%S)" --allow-empty
 git push
 
 echo "Uploading binary to server..."
-scp /Users/timroberton/projects/_1_WEB_APPS/wb-fastr-cli/wb \
+scp "$SCRIPT_DIR/wb" \
   wb-server:/root/bin/wb
 
 # Clear trap on success
