@@ -7,6 +7,7 @@ export type Server = {
   serverVersion: string;
   adminVersion?: string;
   french?: boolean;
+  portuguese?: boolean;
   ethiopian?: boolean;
   openAccess?: boolean;
   tags?: string[];

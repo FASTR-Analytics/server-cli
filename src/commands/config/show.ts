@@ -27,6 +27,7 @@ ${colors.bold("Server Details:")}
   ${colors.cyan("Server Version:")} ${server.serverVersion || "latest"}
   ${colors.cyan("Admin Version:")}  ${server.adminVersion || "None"}
   ${colors.cyan("French:")}         ${server.french ? "Yes" : "No"}
+  ${colors.cyan("Portuguese:")}     ${server.portuguese ? "Yes" : "No"}
   ${colors.cyan("Ethiopian:")}      ${server.ethiopian ? "Yes" : "No"}
   ${colors.cyan("Open Access:")}    ${server.openAccess ? "Yes" : "No"}
 `);

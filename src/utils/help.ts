@@ -23,6 +23,7 @@ ${colors.bold("CONFIG COMMANDS")} ${colors.dim("(c) - modify servers.json only")
 ${colors.bold("UPDATE OPTIONS")}
   ${colors.dim("--label <text>")}           Change display label
   ${colors.dim("--french <true|false>")}    Enable/disable French language
+  ${colors.dim("--portuguese <true|false>")} Enable/disable Portuguese language
   ${colors.dim("--ethiopian <true|false>")} Enable/disable Ethiopian calendar
   ${colors.dim("--open-access <true|false>")} Enable/disable open access
   ${colors.dim("--server <ver>")}           Set server version

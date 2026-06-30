@@ -13,6 +13,7 @@ import { colors } from "../../utils/colors.ts";
 type UpdateOptions = {
   label?: string;
   french?: boolean;
+  portuguese?: boolean;
   ethiopian?: boolean;
   "open-access"?: boolean;
   server?: string;
@@ -35,7 +36,7 @@ export async function handleConfig(
 ): Promise<void> {
   const parsed = parseArgs(args, {
     boolean: ["json", "force"],
-    string: ["label", "french", "ethiopian", "open-access", "server", "admin", "instance-dir", "volume", "tag"],
+    string: ["label", "french", "portuguese", "ethiopian", "open-access", "server", "admin", "instance-dir", "volume", "tag"],
     alias: {
       "open-access": "open_access",
       "instance-dir": "instance_dir"
@@ -82,13 +83,13 @@ export async function handleConfig(
 
     case "update": {
       // Validate known options
-      const knownOptions = new Set(["_", "json", "force", "label", "french", "ethiopian", "open-access", "open_access", "server", "admin", "instance-dir", "instance_dir", "volume"]);
+      const knownOptions = new Set(["_", "json", "force", "label", "french", "portuguese", "ethiopian", "open-access", "open_access", "server", "admin", "instance-dir", "instance_dir", "volume"]);
       const providedOptions = Object.keys(parsed);
       const unknownOptions = providedOptions.filter(opt => !knownOptions.has(opt));
 
       if (unknownOptions.length > 0) {
         console.error(colors.red(`Error: Unknown option(s): --${unknownOptions.join(", --")}`));
-        console.error(colors.dim("Valid options: --label, --french, --ethiopian, --open-access, --server, --admin, --instance-dir, --volume"));
+        console.error(colors.dim("Valid options: --label, --french, --portuguese, --ethiopian, --open-access, --server, --admin, --instance-dir, --volume"));
         Deno.exit(1);
       }
 
@@ -98,6 +99,7 @@ export async function handleConfig(
 
       if (parsed.label) options.label = parsed.label;
       if (parsed.french) options.french = parseBooleanOption(parsed.french);
+      if (parsed.portuguese) options.portuguese = parseBooleanOption(parsed.portuguese);
       if (parsed.ethiopian) options.ethiopian = parseBooleanOption(parsed.ethiopian);
       if (parsed["open-access"]) options["open-access"] = parseBooleanOption(parsed["open-access"]);
       if (parsed.server) options.server = parsed.server;

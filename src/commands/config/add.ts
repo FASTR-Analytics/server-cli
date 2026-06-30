@@ -43,6 +43,7 @@ export async function handleConfigAdd(
     port,
     serverVersion: latestServerVersion,
     french: false,
+    portuguese: false,
     ethiopian: false,
     openAccess: false,
   };

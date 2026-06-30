@@ -5,6 +5,7 @@
     "port": 9100,
     "serverVersion": "1.6.7",
     "french": false,
+    "portuguese": false,
     "ethiopian": false,
     "openAccess": true
   },
@@ -15,6 +16,7 @@
     "serverVersion": "1.6.7",
     "adminVersion": "1.0.0",
     "french": false,
+    "portuguese": false,
     "ethiopian": false,
     "openAccess": false,
     "volume": "volume_nyc3_abc123",

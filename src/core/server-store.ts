@@ -21,6 +21,7 @@ import { validateServer, checkIdConflict } from "./validation.ts";
  *   port: 9100,
  *   serverVersion: "1.6.7",
  *   french: false,
+ *   portuguese: false,
  *   ethiopian: false,
  *   openAccess: true
  * });

@@ -6,6 +6,7 @@ import { resolveTargets } from "../../core/tag-resolver.ts";
 type UpdateOptions = {
   label?: string;
   french?: boolean;
+  portuguese?: boolean;
   ethiopian?: boolean;
   "open-access"?: boolean;
   server?: string;
@@ -37,6 +38,11 @@ async function updateSingleServer(
   if (options.french !== undefined) {
     changes.french = options.french;
     changesList.push(`french: ${options.french}`);
+  }
+
+  if (options.portuguese !== undefined) {
+    changes.portuguese = options.portuguese;
+    changesList.push(`portuguese: ${options.portuguese}`);
   }
 
   if (options.ethiopian !== undefined) {

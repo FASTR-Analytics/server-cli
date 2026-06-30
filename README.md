@@ -121,6 +121,7 @@ Create a `servers.json` file on the server at `/root/config/servers.json`:
     "port": 9100,
     "serverVersion": "1.6.7",
     "french": false,
+    "portuguese": false,
     "ethiopian": false,
     "openAccess": true,
     "tags": ["development"]
@@ -138,6 +139,7 @@ See `servers.json.example` in the repository for more examples.
 - `serverVersion`: Docker image version
 - `adminVersion`: Optional admin interface version
 - `french`: Enable French language interface
+- `portuguese`: Enable Portuguese language interface
 - `ethiopian`: Enable Ethiopian calendar
 - `openAccess`: Allow public access without authentication
 - `instanceDir`: Custom data directory name (defaults to `id`)

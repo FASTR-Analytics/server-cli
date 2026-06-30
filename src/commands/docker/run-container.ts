@@ -187,6 +187,7 @@ export async function runContainer(
       "-e", `INSTANCE_ID=${serverInfo.id}`,
       "-e", `INSTANCE_NAME=${serverInfo.label}`,
       ...(serverInfo.french ? ["-e", `INSTANCE_LANGUAGE=fr`] : []),
+      ...(serverInfo.portuguese ? ["-e", `INSTANCE_LANGUAGE=pt`] : []),
       ...(serverInfo.ethiopian ? ["-e", `INSTANCE_CALENDAR=ethiopian`] : []),
       ...(serverInfo.openAccess ? ["-e", `OPEN_ACCESS=1`] : []),
       "-e", `INSTANCE_REDIRECT_URL=https://${serverInfo.id}.${config.domain}`,
