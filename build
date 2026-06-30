@@ -32,7 +32,7 @@ git commit -m "Build at $(date +%Y_%m_%d_%H_%M_%S)" --allow-empty
 git push
 
 echo "Uploading binary to server..."
-scp "$SCRIPT_DIR/wb" \
+rsync -avz --progress "$SCRIPT_DIR/wb" \
   root@159.223.167.134:/root/bin/wb
 
 # Clear trap on success
