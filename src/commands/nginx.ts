@@ -1,4 +1,4 @@
-import { join } from "@std/path";
+import { dirname, join } from "@std/path";
 import { ServerStore } from "../core/server-store.ts";
 import { colors } from "../utils/colors.ts";
 
@@ -26,6 +26,9 @@ export async function handleInitNginx(
   location / {
     proxy_pass http://localhost:${port};
     proxy_buffering off;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -41,6 +44,29 @@ export async function handleInitNginx(
 
   console.log(colors.cyan(`Setting up nginx for ${serverId}...`));
   console.log(colors.dim(`Domain: ${subdomain}`));
+
+  // Ensure the WebSocket upgrade map exists (must live in the http context, so
+  // it goes in conf.d). The Upgrade/Connection headers in the location block
+  // above reference $connection_upgrade, which this map defines. Idempotent.
+  const confDPath = join(dirname(sitesAvailablePath), "conf.d");
+  const wsMapPath = join(confDPath, "websocket_upgrade.conf");
+  const wsMapText = `map $http_upgrade $connection_upgrade {
+    default upgrade;
+    ''      close;
+}
+`;
+  try {
+    await Deno.lstat(wsMapPath);
+    console.log(colors.yellow(`✓ WebSocket upgrade map already exists`));
+  } catch {
+    try {
+      await Deno.mkdir(confDPath, { recursive: true });
+    } catch {
+      // conf.d already exists
+    }
+    await Deno.writeTextFile(wsMapPath, wsMapText);
+    console.log(colors.green(`✓ Created WebSocket upgrade map (conf.d)`));
+  }
 
   const maintenancePagePath = "/var/www/html/502.html";
   const maintenancePageHtml = `<!DOCTYPE html>
