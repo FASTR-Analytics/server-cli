@@ -16,6 +16,7 @@ export interface Config {
   dailyTokenLimit: number | undefined;
   weeklyTokenLimit: number | undefined;
   centralServerSecret: string | undefined;
+  dhis2CredentialsEncryptionKey: string | undefined;
 }
 
 let config: Config | null = null;
@@ -40,6 +41,7 @@ export function getConfig(): Config {
   const pgPassword = Deno.env.get("PG_PASSWORD");
   const githubToken = Deno.env.get("GITHUB_TOKEN");
   const centralServerSecret = Deno.env.get("CENTRAL_SERVER_SECRET");
+  const dhis2CredentialsEncryptionKey = Deno.env.get("DHIS2_CREDENTIALS_ENCRYPTION_KEY");
   const dailyTokenLimitRaw = Deno.env.get("DAILY_TOKEN_LIMIT");
   const dailyTokenLimit = dailyTokenLimitRaw ? parseInt(dailyTokenLimitRaw) : undefined;
   const weeklyTokenLimitRaw = Deno.env.get("WEEKLY_TOKEN_LIMIT");
@@ -83,6 +85,7 @@ export function getConfig(): Config {
     dailyTokenLimit,
     weeklyTokenLimit,
     centralServerSecret,
+    dhis2CredentialsEncryptionKey,
   };
 
   return config;

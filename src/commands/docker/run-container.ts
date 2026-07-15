@@ -204,6 +204,7 @@ export async function runContainer(
       ...(config.weeklyTokenLimit !== undefined ? ["-e", `WEEKLY_TOKEN_LIMIT=${config.weeklyTokenLimit}`] : []),
       ...(serverInfo.volume ? ["-e", `VOLUME_NAME=${serverInfo.volume}`] : []),
       ...(config.centralServerSecret ? ["-e", `CENTRAL_SERVER_SECRET=${config.centralServerSecret}`] : []),
+      ...(config.dhis2CredentialsEncryptionKey ? ["-e", `DHIS2_CREDENTIALS_ENCRYPTION_KEY=${config.dhis2CredentialsEncryptionKey}`] : []),
       ...(serverInfo.mode === "central" ? ["-e", `INSTANCE_MODE=central`] : []),
       serverInfo.mode === "central"
         ? getCentralServerImageName(serverInfo.serverVersion)
