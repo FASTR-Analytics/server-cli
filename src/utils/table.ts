@@ -19,6 +19,7 @@ export function formatServersTable(servers: Server[], runningContainers?: Set<st
     "French",
     "Portuguese",
     "Ethiopian",
+    "Fiscal",
     "Open",
     "Tags",
   ];
@@ -65,6 +66,7 @@ export function formatServersTable(servers: Server[], runningContainers?: Set<st
     server.french ? "✓" : "",
     server.portuguese ? "✓" : "",
     server.ethiopian ? "✓" : "",
+    server.fiscalYear === "july" ? "july" : "",
     server.openAccess ? "✓" : "",
     server.tags?.join(", ") || "",
   ]);

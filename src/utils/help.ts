@@ -25,6 +25,7 @@ ${colors.bold("UPDATE OPTIONS")}
   ${colors.dim("--french <true|false>")}    Enable/disable French language
   ${colors.dim("--portuguese <true|false>")} Enable/disable Portuguese language
   ${colors.dim("--ethiopian <true|false>")} Enable/disable Ethiopian calendar
+  ${colors.dim("--fiscal-year <none|july>")} Set fiscal year start (default none)
   ${colors.dim("--open-access <true|false>")} Enable/disable open access
   ${colors.dim("--server <ver>")}           Set server version
   ${colors.dim("--admin <ver>")}            Set admin version

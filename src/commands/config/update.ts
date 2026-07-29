@@ -1,5 +1,5 @@
 import { ServerStore } from "../../core/server-store.ts";
-import { Server } from "../../core/types.ts";
+import { FiscalYear, Server } from "../../core/types.ts";
 import { colors } from "../../utils/colors.ts";
 import { resolveTargets } from "../../core/tag-resolver.ts";
 
@@ -8,6 +8,7 @@ type UpdateOptions = {
   french?: boolean;
   portuguese?: boolean;
   ethiopian?: boolean;
+  "fiscal-year"?: FiscalYear;
   "open-access"?: boolean;
   server?: string;
   admin?: string;
@@ -48,6 +49,11 @@ async function updateSingleServer(
   if (options.ethiopian !== undefined) {
     changes.ethiopian = options.ethiopian;
     changesList.push(`ethiopian: ${options.ethiopian}`);
+  }
+
+  if (options["fiscal-year"] !== undefined) {
+    changes.fiscalYear = options["fiscal-year"];
+    changesList.push(`fiscal-year: ${options["fiscal-year"]}`);
   }
 
   if (options["open-access"] !== undefined) {

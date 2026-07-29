@@ -1,4 +1,4 @@
-import { Server, ValidationResult } from "./types.ts";
+import { FISCAL_YEARS, Server, ValidationResult } from "./types.ts";
 
 /**
  * Validates a server configuration object.
@@ -8,6 +8,7 @@ import { Server, ValidationResult } from "./types.ts";
  * - Label is non-empty
  * - Server version is specified
  * - Port is in valid range (1000-65535)
+ * - Fiscal year, if set, is one of the known values
  *
  * @param server - Server configuration to validate
  * @returns ValidationResult with valid flag and error messages
@@ -48,6 +49,15 @@ export function validateServer(server: Server): ValidationResult {
 
   if (!server.port || server.port < 1000 || server.port > 65535) {
     errors.push("Port must be between 1000 and 65535");
+  }
+
+  if (
+    server.fiscalYear !== undefined &&
+    !FISCAL_YEARS.includes(server.fiscalYear)
+  ) {
+    errors.push(
+      `Fiscal year must be one of: ${FISCAL_YEARS.join(", ")} (or omitted)`
+    );
   }
 
   return { valid: errors.length === 0, errors };

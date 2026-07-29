@@ -1,3 +1,7 @@
+export const FISCAL_YEARS = ["none", "july"] as const;
+
+export type FiscalYear = (typeof FISCAL_YEARS)[number];
+
 export type Server = {
   id: string;
   label: string;
@@ -9,6 +13,7 @@ export type Server = {
   french?: boolean;
   portuguese?: boolean;
   ethiopian?: boolean;
+  fiscalYear?: FiscalYear;
   openAccess?: boolean;
   tags?: string[];
   mode?: "central";

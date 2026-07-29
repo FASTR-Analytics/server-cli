@@ -45,6 +45,7 @@ export async function handleConfigAdd(
     french: false,
     portuguese: false,
     ethiopian: false,
+    fiscalYear: "none",
     openAccess: false,
   };
 
