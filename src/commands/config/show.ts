@@ -30,6 +30,7 @@ ${colors.bold("Server Details:")}
   ${colors.cyan("Portuguese:")}     ${server.portuguese ? "Yes" : "No"}
   ${colors.cyan("Ethiopian:")}      ${server.ethiopian ? "Yes" : "No"}
   ${colors.cyan("Fiscal Year:")}    ${server.fiscalYear ?? "none"}
+  ${colors.cyan("Country ISO3:")}   ${server.countryIso3 || "None"}
   ${colors.cyan("Open Access:")}    ${server.openAccess ? "Yes" : "No"}
 `);
   }

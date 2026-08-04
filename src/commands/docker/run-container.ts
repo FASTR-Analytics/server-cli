@@ -190,6 +190,7 @@ export async function runContainer(
       ...(serverInfo.portuguese ? ["-e", `INSTANCE_LANGUAGE=pt`] : []),
       ...(serverInfo.ethiopian ? ["-e", `INSTANCE_CALENDAR=ethiopian`] : []),
       ...(serverInfo.fiscalYear === "july" ? ["-e", `INSTANCE_FISCAL_YEAR=july`] : []),
+      ...(serverInfo.countryIso3 ? ["-e", `ISO_COUNTRY_CODE=${serverInfo.countryIso3}`] : []),
       ...(serverInfo.openAccess ? ["-e", `OPEN_ACCESS=1`] : []),
       "-e", `INSTANCE_REDIRECT_URL=https://${serverInfo.id}.${config.domain}`,
       "-e", `PG_HOST=${serverInfo.id}-postgres`,

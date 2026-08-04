@@ -14,6 +14,7 @@ export type Server = {
   portuguese?: boolean;
   ethiopian?: boolean;
   fiscalYear?: FiscalYear;
+  countryIso3?: string;
   openAccess?: boolean;
   tags?: string[];
   mode?: "central";

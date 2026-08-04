@@ -8,6 +8,7 @@
     "portuguese": false,
     "ethiopian": false,
     "fiscalYear": "none",
+    "countryIso3": "NGA",
     "openAccess": true
   },
   {
@@ -20,6 +21,7 @@
     "portuguese": false,
     "ethiopian": false,
     "fiscalYear": "none",
+    "countryIso3": "NGA",
     "openAccess": false,
     "volume": "volume_nyc3_abc123",
     "tags": ["production"]

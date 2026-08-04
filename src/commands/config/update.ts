@@ -9,6 +9,7 @@ type UpdateOptions = {
   portuguese?: boolean;
   ethiopian?: boolean;
   "fiscal-year"?: FiscalYear;
+  "country-iso3"?: string;
   "open-access"?: boolean;
   server?: string;
   admin?: string;
@@ -54,6 +55,16 @@ async function updateSingleServer(
   if (options["fiscal-year"] !== undefined) {
     changes.fiscalYear = options["fiscal-year"];
     changesList.push(`fiscal-year: ${options["fiscal-year"]}`);
+  }
+
+  if (options["country-iso3"] !== undefined) {
+    if (options["country-iso3"] === "" || options["country-iso3"].toLowerCase() === "none") {
+      changes.countryIso3 = undefined;
+      changesList.push(`country-iso3: None (removed)`);
+    } else {
+      changes.countryIso3 = options["country-iso3"];
+      changesList.push(`country-iso3: ${options["country-iso3"]}`);
+    }
   }
 
   if (options["open-access"] !== undefined) {

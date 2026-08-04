@@ -17,6 +17,7 @@ type UpdateOptions = {
   portuguese?: boolean;
   ethiopian?: boolean;
   "fiscal-year"?: FiscalYear;
+  "country-iso3"?: string;
   "open-access"?: boolean;
   server?: string;
   admin?: string;
@@ -46,11 +47,12 @@ export async function handleConfig(
 ): Promise<void> {
   const parsed = parseArgs(args, {
     boolean: ["json", "force"],
-    string: ["label", "french", "portuguese", "ethiopian", "fiscal-year", "open-access", "server", "admin", "instance-dir", "volume", "tag"],
+    string: ["label", "french", "portuguese", "ethiopian", "fiscal-year", "country-iso3", "open-access", "server", "admin", "instance-dir", "volume", "tag"],
     alias: {
       "open-access": "open_access",
       "instance-dir": "instance_dir",
-      "fiscal-year": "fiscal_year"
+      "fiscal-year": "fiscal_year",
+      "country-iso3": "country_iso3"
     }
   });
 
@@ -94,13 +96,13 @@ export async function handleConfig(
 
     case "update": {
       // Validate known options
-      const knownOptions = new Set(["_", "json", "force", "label", "french", "portuguese", "ethiopian", "fiscal-year", "fiscal_year", "open-access", "open_access", "server", "admin", "instance-dir", "instance_dir", "volume"]);
+      const knownOptions = new Set(["_", "json", "force", "label", "french", "portuguese", "ethiopian", "fiscal-year", "fiscal_year", "country-iso3", "country_iso3", "open-access", "open_access", "server", "admin", "instance-dir", "instance_dir", "volume"]);
       const providedOptions = Object.keys(parsed);
       const unknownOptions = providedOptions.filter(opt => !knownOptions.has(opt));
 
       if (unknownOptions.length > 0) {
         console.error(colors.red(`Error: Unknown option(s): --${unknownOptions.join(", --")}`));
-        console.error(colors.dim("Valid options: --label, --french, --portuguese, --ethiopian, --fiscal-year, --open-access, --server, --admin, --instance-dir, --volume"));
+        console.error(colors.dim("Valid options: --label, --french, --portuguese, --ethiopian, --fiscal-year, --country-iso3, --open-access, --server, --admin, --instance-dir, --volume"));
         Deno.exit(1);
       }
 
@@ -113,6 +115,10 @@ export async function handleConfig(
       if (parsed.portuguese) options.portuguese = parseBooleanOption(parsed.portuguese);
       if (parsed.ethiopian) options.ethiopian = parseBooleanOption(parsed.ethiopian);
       if (parsed["fiscal-year"]) options["fiscal-year"] = parseFiscalYearOption(parsed["fiscal-year"]);
+      // Matches --volume: not truthy-checked, and "none" is the removal form.
+      // (An explicit "" also clears, but parseArgs leaks it into positionals so
+      // resolveTargets rejects it first — same pre-existing quirk as --volume.)
+      if (parsed["country-iso3"] !== undefined) options["country-iso3"] = parsed["country-iso3"].toUpperCase();
       if (parsed["open-access"]) options["open-access"] = parseBooleanOption(parsed["open-access"]);
       if (parsed.server) options.server = parsed.server;
       if (parsed.admin) options.admin = parsed.admin;
