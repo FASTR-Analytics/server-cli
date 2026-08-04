@@ -144,7 +144,7 @@ See `servers.json.example` in the repository for more examples.
 - `portuguese`: Enable Portuguese language interface
 - `ethiopian`: Enable Ethiopian calendar
 - `fiscalYear`: Fiscal year start — `"none"` (default) or `"july"`
-- `countryIso3`: ISO3 country code (e.g. `"NGA"`), passed as `ISO_COUNTRY_CODE`. Omit if unset
+- `countryIso3`: Country code, usually ISO3 (e.g. `"NGA"`), passed as `ISO_COUNTRY_CODE`. Territories without an ISO3 code use a name (e.g. `"SOMALILAND"`). Omit if unset
 - `openAccess`: Allow public access without authentication
 - `instanceDir`: Custom data directory name (defaults to `id`)
 - `tags`: Array of tags for bulk operations
