@@ -231,14 +231,32 @@ export async function runCLI(): Promise<void> {
 
   // Handle move-volume command
   if (command === "move-volume") {
-    const serverId = subcommand;
-    const newVolume = rest[0];
-    if (!serverId || !newVolume) {
-      console.error(colors.red("Error: Server ID and target volume required"));
-      console.error(colors.dim("Usage: wb move-volume <server-id> <new-volume>"));
+    const usage = "Usage: wb move-volume <id1> [id2 ...] | @tag | server=VERSION | all <new-volume> [--dry-run] [--force]";
+    const knownFlags = new Set(["--dry-run", "--force", "-f"]);
+    const moveArgs = rawArgs.slice(1);
+    const unknownFlags = moveArgs.filter((a) => a.startsWith("-") && !knownFlags.has(a));
+    if (unknownFlags.length > 0) {
+      console.error(colors.red(`Error: Unknown option ${unknownFlags.join(", ")}`));
+      console.error(colors.dim(usage));
       Deno.exit(1);
     }
-    await handleMoveVolume(config.serversFilePath, serverId, newVolume, config.mountPath);
+    const positionals = moveArgs.filter((a) => !knownFlags.has(a));
+    if (positionals.length < 2) {
+      console.error(colors.red("Error: Server target(s) and new volume required"));
+      console.error(colors.dim(usage));
+      Deno.exit(1);
+    }
+    const newVolume = positionals[positionals.length - 1];
+    const targets = positionals.slice(0, -1);
+    if (newVolume === "all" || newVolume.startsWith("@") || newVolume.startsWith("server=")) {
+      console.error(colors.red(`Error: The new volume must be the last argument (got '${newVolume}')`));
+      console.error(colors.dim(usage));
+      Deno.exit(1);
+    }
+    await handleMoveVolume(config.serversFilePath, targets, newVolume, config.mountPath, {
+      dryRun: moveArgs.includes("--dry-run"),
+      force: args.force,
+    });
     Deno.exit(0);
   }
 

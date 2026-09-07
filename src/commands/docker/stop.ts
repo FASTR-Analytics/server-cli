@@ -1,6 +1,7 @@
 import { getConfig } from "../../core/config.ts";
 import { ServerStore } from "../../core/server-store.ts";
 import { resolveTargets } from "../../core/tag-resolver.ts";
+import { Server } from "../../core/types.ts";
 import { stopContainer } from "./stop-container.ts";
 import { stopAdminContainer } from "./stop-admin-container.ts";
 import { colors } from "../../utils/colors.ts";
@@ -8,6 +9,20 @@ import { colors } from "../../utils/colors.ts";
 export async function markIntentionalStop(name: string): Promise<void> {
   const ts = Math.floor(Date.now() / 1000);
   await Deno.writeTextFile("/var/lib/wb/intentional-stops", `${name}:${ts}\n`, { append: true });
+}
+
+/** Stops every container belonging to a server (app, admin, valkey, postgres), marking each stop as intentional. */
+export async function stopServerContainers(serverInfo: Server): Promise<void> {
+  await markIntentionalStop(serverInfo.id);
+  await stopContainer(serverInfo.id);
+  if (serverInfo.adminVersion) {
+    await markIntentionalStop(`${serverInfo.id}-admin`);
+    await stopAdminContainer(serverInfo.id);
+  }
+  await markIntentionalStop(`${serverInfo.id}-valkey`);
+  await stopContainer(`${serverInfo.id}-valkey`);
+  await markIntentionalStop(`${serverInfo.id}-postgres`);
+  await stopContainer(`${serverInfo.id}-postgres`, 30);
 }
 
 export async function handleStop(targets: string[]): Promise<void> {
@@ -30,16 +45,7 @@ export async function handleStop(targets: string[]): Promise<void> {
         continue;
       }
       console.log("Stop container:", serverInfo.id, String(serverInfo.port));
-      await markIntentionalStop(serverInfo.id);
-      await stopContainer(serverInfo.id);
-      if (serverInfo.adminVersion) {
-        await markIntentionalStop(`${serverInfo.id}-admin`);
-        await stopAdminContainer(serverInfo.id);
-      }
-      await markIntentionalStop(`${serverInfo.id}-valkey`);
-      await stopContainer(`${serverInfo.id}-valkey`);
-      await markIntentionalStop(`${serverInfo.id}-postgres`);
-      await stopContainer(`${serverInfo.id}-postgres`, 30);
+      await stopServerContainers(serverInfo);
 
       try {
         const cmdRemoveNetwork = new Deno.Command("docker", {

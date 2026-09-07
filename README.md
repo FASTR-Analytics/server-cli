@@ -206,6 +206,13 @@ wb remove-dirs demo
 wb remove-nginx demo
 wb remove-ssl demo
 
+# Move server data to another volume (/mnt/<volume>), one server at a time:
+# stop -> copy -> verify -> update config -> start. Old data is left in place.
+wb move-volume demo volume05
+wb move-volume all volume05 --dry-run   # show the plan and space check only
+wb move-volume all volume05             # accepts all / @tag / server=VERSION
+wb move-volume @staging volume05 --force  # skip the confirmation prompt
+
 # List configurations
 wb list-nginx
 wb list-ssl

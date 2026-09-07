@@ -38,7 +38,8 @@ ${colors.bold("INITIALIZATION COMMANDS")} ${colors.dim("(setup server infrastruc
   ${colors.cyan("wb init-nginx <id>")}           Setup nginx configuration
   ${colors.cyan("wb init-ssl <id>")}             Setup SSL certificate with certbot
   ${colors.cyan("wb remove-dirs <id>")}          Remove server directories (requires confirmation)
-  ${colors.cyan("wb move-volume <id> <volume>")}  Move server data to a different volume (stop → copy → update config → start)
+  ${colors.cyan("wb move-volume <id...> <volume>")} Move server data to another volume, one server at a time (stop → copy → verify → update config → start)
+  ${colors.dim("    accepts all / @tag / server=VERSION; --dry-run shows the plan and space check, --force skips the confirmation")}
   ${colors.cyan("wb remove-nginx <id>")}         Remove nginx configuration
   ${colors.cyan("wb remove-ssl <id>")}           Revoke and remove SSL certificate
   ${colors.cyan("wb list-nginx")}                List all nginx configurations
@@ -79,5 +80,7 @@ ${colors.dim("Examples:")}
   ${colors.dim("wb run @staging")}
   ${colors.dim("wb stop all")}
   ${colors.dim("wb restart admin")}
+  ${colors.dim("wb move-volume all volume05 --dry-run")}
+  ${colors.dim("wb move-volume all volume05")}
 `);
 }
