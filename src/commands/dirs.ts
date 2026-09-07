@@ -43,8 +43,8 @@ export async function handleInitDirs(
     }
   }
 
-  await Deno.chmod(join(instanceDirPath, "sandbox"), 0o777);
-  console.log(colors.green(`✓ Set permissions for sandbox directory`));
+  await Deno.chmod(join(instanceDirPath, "runs"), 0o777);
+  console.log(colors.green(`✓ Set permissions for runs directory`));
   
   console.log(colors.green(`\n✓ Directory initialization complete for ${serverId}`));
 }
@@ -70,7 +70,7 @@ export async function handleRemoveDirs(
   if (!force) {
     console.log(colors.yellow(`⚠️  WARNING: This will permanently delete all data in:`));
     console.log(colors.red(`   ${instanceDirPath}`));
-    console.log(colors.yellow(`   This includes databases, exports, assets, and sandbox files.`));
+    console.log(colors.yellow(`   This includes databases, exports, assets, and runs files.`));
     console.log("");
     console.log(colors.cyan(`Type "${serverId}" to confirm deletion, or anything else to cancel:`));
     

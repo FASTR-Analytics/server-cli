@@ -51,7 +51,7 @@ export async function runContainer(
   //                             //
   /////////////////////////////////
 
-  await Deno.chmod(join(instanceDirPath, "sandbox"), 0o777);
+  await Deno.chmod(join(instanceDirPath, "runs"), 0o777);
 
   //////////////////////////
   //                      //
@@ -101,7 +101,7 @@ export async function runContainer(
       "-e", `POSTGRES_PASSWORD=${config.postgresPassword}`,
       "-e", `PGDATA=/var/lib/postgresql/data/pgdata`,
       "-v", `${join(instanceDirPath, "databases")}:/var/lib/postgresql/data`,
-      "-v", `${join(instanceDirPath, "sandbox")}:/app/sandbox`,
+      "-v", `${join(instanceDirPath, "runs")}:/app/runs`,
       "postgres:17.4",
       "-c", "shared_preload_libraries=pg_stat_statements",
       "-c", "pg_stat_statements.track=all",
@@ -171,9 +171,9 @@ export async function runContainer(
       "-p", `${port}:8000`,
       "-v", "/var/run/docker.sock:/var/run/docker.sock",
       "-v", `${join(instanceDirPath, "databases")}:/app/databases`,
-      "-v", `${join(instanceDirPath, "sandbox")}:/app/sandbox`,
+      "-v", `${join(instanceDirPath, "runs")}:/app/runs`,
       "-v", `${join(instanceDirPath, "assets")}:/app/assets`,
-      "-e", `SANDBOX_DIR_PATH_EXTERNAL=${join(instanceDirPath, "sandbox")}`,
+      "-e", `RUNS_DIR_PATH_EXTERNAL=${join(instanceDirPath, "runs")}`,
       ...(serverInfo.adminVersion
         ? ["-e", `ADMIN_SERVER_HOST=http://${serverInfo.id}-admin:8001`]
         : []),

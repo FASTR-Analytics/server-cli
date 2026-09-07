@@ -321,8 +321,9 @@ docker network ls
 **Permission issues:**
 
 ```bash
-# Ensure sandbox directory has correct permissions
-chmod 777 /mnt/volume_data/demo/sandbox
+# Ensure runs directory has correct permissions
+# (server v1.70.0+ reads results packages from runs/; it was sandbox/ before)
+chmod 777 /mnt/volume_data/demo/runs
 
 # Check mount path permissions
 ls -la /mnt/volume_data
