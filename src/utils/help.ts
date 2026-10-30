@@ -50,6 +50,8 @@ ${colors.bold("DOCKER COMMANDS")} ${colors.dim("(manage running containers)")}
   ${colors.cyan("wb run-central <id...>")}           Run one or more central server containers
   ${colors.cyan("wb stop <id...>")}              Stop one or more containers
   ${colors.cyan("wb restart <id...>")}           Restart one or more containers
+  ${colors.dim("    skips an instance while a results package is generating or an import is running (exits 1);")}
+  ${colors.dim("    --force restarts or stops it anyway (applies to wb stop too)")}
   ${colors.cyan("wb backfill-names <id...>")}    Backfill user first/last names from Clerk into each instance DB
   ${colors.cyan("wb pull")}                      Pull docker images
   ${colors.cyan("wb prune")}                     Prune unused docker networks

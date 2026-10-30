@@ -5,6 +5,7 @@ import { Server } from "../../core/types.ts";
 import { stopContainer } from "./stop-container.ts";
 import { stopAdminContainer } from "./stop-admin-container.ts";
 import { colors } from "../../utils/colors.ts";
+import { describeBusy, getInstanceBusy } from "../../utils/instance-busy.ts";
 
 export async function markIntentionalStop(name: string): Promise<void> {
   const ts = Math.floor(Date.now() / 1000);
@@ -25,7 +26,7 @@ export async function stopServerContainers(serverInfo: Server): Promise<void> {
   await stopContainer(`${serverInfo.id}-postgres`, 30);
 }
 
-export async function handleStop(targets: string[]): Promise<void> {
+export async function handleStop(targets: string[], force: boolean = false): Promise<void> {
   const config = getConfig();
   const store = new ServerStore(config.serversFilePath);
 
@@ -35,6 +36,7 @@ export async function handleStop(targets: string[]): Promise<void> {
     Deno.exit(1);
   }
 
+  let skipped = false;
   try {
     const resolvedIds = await resolveTargets(store, targets);
 
@@ -42,6 +44,18 @@ export async function handleStop(targets: string[]): Promise<void> {
       const serverInfo = await store.get(id);
       if (!serverInfo) {
         console.error(colors.red(`Error: Server '${id}' not found`));
+        continue;
+      }
+      // A stop kills a generating results package or a running import.
+      // An instance that cannot answer (down, hung) is not busy.
+      const busy = await getInstanceBusy(serverInfo.port);
+      if (busy && !force) {
+        console.error(
+          colors.red(
+            `Skipping ${serverInfo.id}: ${describeBusy(busy)}. Wait for it to finish, or pass --force to stop anyway.`,
+          ),
+        );
+        skipped = true;
         continue;
       }
       console.log("Stop container:", serverInfo.id, String(serverInfo.port));
@@ -62,4 +76,5 @@ export async function handleStop(targets: string[]): Promise<void> {
     console.error(colors.red(`Error: ${error instanceof Error ? error.message : String(error)}`));
     Deno.exit(1);
   }
+  if (skipped) Deno.exit(1);
 }

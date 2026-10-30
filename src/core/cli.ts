@@ -195,9 +195,9 @@ export async function runCLI(): Promise<void> {
 
   // Handle stop command
   if (command === "stop") {
-    const targets = rest;
-    if (subcommand) targets.unshift(subcommand);
-    await handleStop(targets);
+    // rest is raw, so drop flags (--force, -f, --interactive) from the targets
+    const targets = [subcommand, ...rest].filter((a): a is string => !!a && !a.startsWith("-"));
+    await handleStop(targets, args.force);
     Deno.exit(0);
   }
 
@@ -262,9 +262,9 @@ export async function runCLI(): Promise<void> {
 
   // Handle restart command
   if (command === "restart") {
-    const targets = rest;
-    if (subcommand) targets.unshift(subcommand);
-    await handleRestart(targets, args.interactive);
+    // rest is raw, so drop flags (--force, -f, --interactive) from the targets
+    const targets = [subcommand, ...rest].filter((a): a is string => !!a && !a.startsWith("-"));
+    await handleRestart(targets, args.interactive, args.force);
     Deno.exit(0);
   }
 

@@ -6,8 +6,13 @@ import { stopContainer } from "./stop-container.ts";
 import { stopAdminContainer } from "./stop-admin-container.ts";
 import { markIntentionalStop } from "./stop.ts";
 import { colors } from "../../utils/colors.ts";
+import { describeBusy, getInstanceBusy } from "../../utils/instance-busy.ts";
 
-export async function handleRestart(targets: string[], interactive: boolean = false): Promise<void> {
+export async function handleRestart(
+  targets: string[],
+  interactive: boolean = false,
+  force: boolean = false,
+): Promise<void> {
   const config = getConfig();
   const store = new ServerStore(config.serversFilePath);
 
@@ -17,6 +22,7 @@ export async function handleRestart(targets: string[], interactive: boolean = fa
     Deno.exit(1);
   }
 
+  let skipped = false;
   try {
     const resolvedIds = await resolveTargets(store, targets);
 
@@ -25,6 +31,18 @@ export async function handleRestart(targets: string[], interactive: boolean = fa
       const serverInfo = await store.get(id);
       if (!serverInfo) {
         console.error(colors.red(`Error: Server '${id}' not found`));
+        continue;
+      }
+      // A restart kills a generating results package or a running import.
+      // An instance that cannot answer (down, hung) is not busy.
+      const busy = await getInstanceBusy(serverInfo.port);
+      if (busy && !force) {
+        console.error(
+          colors.red(
+            `Skipping ${serverInfo.id}: ${describeBusy(busy)}. Wait for it to finish, or pass --force to restart anyway.`,
+          ),
+        );
+        skipped = true;
         continue;
       }
       console.log("Stop container:", serverInfo.id, String(serverInfo.port));
@@ -49,4 +67,6 @@ export async function handleRestart(targets: string[], interactive: boolean = fa
     console.error(colors.red(`Error: ${error instanceof Error ? error.message : String(error)}`));
     Deno.exit(1);
   }
+  // Nonzero so a scripted deploy stops instead of leaving an instance on the old version
+  if (skipped) Deno.exit(1);
 }

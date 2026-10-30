@@ -6,6 +6,7 @@ import { stopServerContainers } from "./docker/stop.ts";
 import { runContainer } from "./docker/run-container.ts";
 import { runCentralContainer } from "./docker/run-central-container.ts";
 import { colors } from "../utils/colors.ts";
+import { describeBusy, getInstanceBusy } from "../utils/instance-busy.ts";
 
 export type MoveVolumeOptions = {
   /** Print the plan and space check, change nothing. */
@@ -144,6 +145,15 @@ async function moveOne(
 ): Promise<void> {
   const { server } = plan;
 
+  // Re-checked here as well as in pre-flight: earlier copies in the batch can
+  // take long enough for someone to start a results package or an import
+  const busy = await getInstanceBusy(server.port);
+  if (busy) {
+    throw new Error(
+      `${describeBusy(busy)}; nothing was changed for it. Wait for it to finish and re-run`,
+    );
+  }
+
   // 1. Stop
   console.log(colors.cyan("  Stopping..."));
   await stopServerContainers(server);
@@ -274,6 +284,14 @@ export async function handleMoveVolume(
     }
     if (server.volume === newVolume) {
       skipped.push({ id, reason: `already on ${newVolume}` });
+      continue;
+    }
+
+    // Stopping kills a generating results package or a running import. No
+    // override: --force only skips the confirmation prompt
+    const busy = await getInstanceBusy(server.port);
+    if (busy) {
+      problems.push(`${id}: ${describeBusy(busy)} (wait for it to finish)`);
       continue;
     }
 
