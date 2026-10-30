@@ -1,9 +1,8 @@
 /** Work in progress on an instance that a restart or stop would kill. */
 export type InstanceBusy = { generatingRuns: number; runningImports: string[] };
 
-// null = not busy. A v1 payload (1.76.x) reports only `hasRunningModules`: it
-// can report a generation but never an import, so on v1 a running import is
-// invisible to the gate. A payload with neither field is not busy.
+// null = not busy. Only the `busy` field is read: an instance that does not
+// report it (pre-v2) is never busy, so the gate does not protect it.
 export function readBusy(payload: Record<string, unknown>): InstanceBusy | null {
   const busy = payload.busy as Partial<InstanceBusy> | null | undefined;
   if (busy && typeof busy === "object") {
@@ -14,9 +13,6 @@ export function readBusy(payload: Record<string, unknown>): InstanceBusy | null 
     return generatingRuns > 0 || runningImports.length > 0
       ? { generatingRuns, runningImports }
       : null;
-  }
-  if (payload.hasRunningModules === true) {
-    return { generatingRuns: 1, runningImports: [] };
   }
   return null;
 }
