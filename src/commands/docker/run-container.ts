@@ -201,6 +201,7 @@ export async function runContainer(
       "-e", `SEND_GRID_API=${config.sendGridApi}`,
       "-e", `PG_PASSWORD=${config.pgPassword}`,
       "-e", `VALKEY_URL=redis://${serverInfo.id}-valkey:6379`,
+      "-e", `DENO_V8_FLAGS=--max-old-space-size=32768`,
       ...(config.githubToken ? ["-e", `GITHUB_TOKEN=${config.githubToken}`] : []),
       ...(config.dailyTokenLimit !== undefined ? ["-e", `DAILY_TOKEN_LIMIT=${config.dailyTokenLimit}`] : []),
       ...(config.weeklyTokenLimit !== undefined ? ["-e", `WEEKLY_TOKEN_LIMIT=${config.weeklyTokenLimit}`] : []),
