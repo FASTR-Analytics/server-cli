@@ -37,6 +37,7 @@ deno compile \
   --allow-run \
   --allow-read \
   --allow-write \
+  --allow-net=api.sendgrid.com,localhost \
   --target x86_64-unknown-linux-gnu \
   -o wb \
   main.ts
