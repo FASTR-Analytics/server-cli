@@ -1,5 +1,9 @@
-/** Work in progress on an instance that a restart or stop would kill. */
-export type InstanceBusy = { generatingRuns: number; runningImports: string[] };
+import { getConfig } from "../core/config.ts";
+
+/** Work in progress on an instance that a restart or stop would kill.
+ *  keyRejected: the instance refused the status key, so its work is unknown
+ *  and it is treated as busy (restart/stop skip it unless --force). */
+export type InstanceBusy = { generatingRuns: number; runningImports: string[]; keyRejected?: boolean };
 
 // null = not busy. Only the `busy` field is read: an instance that does not
 // report it (pre-v2) is never busy, so the gate does not protect it.
@@ -23,8 +27,14 @@ export function readBusy(payload: Record<string, unknown>): InstanceBusy | null 
 export async function getInstanceBusy(port: number): Promise<InstanceBusy | null> {
   try {
     const response = await fetch(`http://localhost:${port}/health_check`, {
+      headers: { "status-api-key": getConfig().statusApiKey },
       signal: AbortSignal.timeout(5000),
     });
+    // Up but refusing the key: its work is unknown, so it counts as busy.
+    if (response.status === 401) {
+      await response.body?.cancel();
+      return { generatingRuns: 0, runningImports: [], keyRejected: true };
+    }
     if (!response.ok) {
       await response.body?.cancel();
       return null;
@@ -39,6 +49,9 @@ export async function getInstanceBusy(port: number): Promise<InstanceBusy | null
 
 /** e.g. "generating 1 results package, importing hmis" */
 export function describeBusy(busy: InstanceBusy): string {
+  if (busy.keyRejected) {
+    return "status key rejected, so running work could not be checked (rebuild wb with the current STATUS_API_KEY)";
+  }
   const parts: string[] = [];
   if (busy.generatingRuns > 0) {
     parts.push(
